@@ -1,0 +1,10 @@
+$ k8s_deploy (broken)
+deployment.apps/web created
+deployment.apps/admin created
+service/shop-public created
+
+$ check.sh
+deployment.apps/web created
+deployment.apps/admin created
+service/shop-public created
+ok: shop-public -> web pods only

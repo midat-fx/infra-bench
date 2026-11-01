@@ -5,12 +5,15 @@
                                passes, each wrong fix fails for its reason
   bench.py agent [-m MODEL ...] [ids...]
                                let `claude -p` fix each scenario, then verify
+  bench.py regrade RUN [ids]   re-verify a past agent run with today's verifiers
   bench.py list
 
 A scenario is a directory under scenarios/:
   task.md      what the engineer (or agent) is told
   workspace/   the broken files
   solution/    reference fix, copied over workspace/
+  alt/<n>/     other correct fixes in a different style; must pass too, so
+               a verifier cannot just pattern-match the reference fix
   wrong/<n>/   plausible bad fixes; `_expect` holds text the verifier's
                output must contain, so a wrong fix is rejected for the
                intended reason, not by accident
@@ -91,6 +94,8 @@ def attempts(sid: str):
     scen = SCEN / sid
     yield "broken", None
     yield "solution", scen / "solution"
+    for d in sorted((scen / "alt").iterdir()) if (scen / "alt").exists() else []:
+        yield f"alt/{d.name}", d
     for w in sorted((scen / "wrong").iterdir()) if (scen / "wrong").exists() else []:
         yield f"wrong/{w.name}", w
 
@@ -100,7 +105,7 @@ def validate_one(sid: str, run_dir: Path):
     for name, src in attempts(sid):
         ws = WORK / run_dir.name / sid / name.replace("/", "-")
         log = []
-        want_pass = name == "solution"
+        want_pass = name == "solution" or name.startswith("alt/")
         expect = (src / "_expect").read_text().strip() if src and (src / "_expect").exists() else None
         try:
             prepare(sid, ws, log)
@@ -260,6 +265,42 @@ def cmd_agent(a):
     return 0
 
 
+def cmd_regrade(a):
+    """Re-run today's verifiers on a past agent run, rebuilding each workspace
+    from the saved diff. Drift needs the live state the agent left, so it is
+    skipped. Writes regrade-<stamp>.json next to the run's summary.json."""
+    run_dir = (ROOT / a.run).resolve()
+    summary = json.loads((run_dir / "summary.json").read_text())
+    out = []
+    for r in summary["rows"]:
+        sid, model = r["scenario"], r["model"]
+        if (a.ids and sid not in a.ids) or (SCEN / sid / "setup.sh").exists():
+            continue
+        ws = WORK / f"regrade-{model}-{sid}"
+        log = []
+        prepare(sid, ws, log)
+        patch = (run_dir / model / f"{sid}.diff").read_text()
+        # Headers point at scrubbed absolute paths; rewrite them to ws-relative.
+        patch = re.sub(r"^(---|\+\+\+) \S+?/" + re.escape(sid) + r"/(?:workspace/)?(\S+)",
+                       r"\1 \2", patch, flags=re.M)
+        patch = "\n".join(l for l in patch.splitlines() if not l.startswith("diff ")) + "\n"
+        p = subprocess.run(["patch", "-p0", "-s"], cwd=ws, input=patch, text=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if p.returncode:
+            sys.exit(f"{model}/{sid}: patch failed: {p.stdout}")
+        passed, vout, _ = verify(sid, ws, log)
+        fails = [l for l in vout.splitlines() if l.startswith("FAIL:")]
+        out.append(dict(scenario=sid, model=model, was=r["passed"], now=passed,
+                        reason=fails[0] if fails else ""))
+        print(f"{model:18} {sid:28} was={'PASS' if r['passed'] else 'fail'} "
+              f"now={'PASS' if passed else 'fail'} {out[-1]['reason']}", flush=True)
+        (run_dir / model / f"{sid}.regrade.log").write_text(scrub("\n".join(log)))
+        shutil.rmtree(ws, ignore_errors=True)
+    res = dict(kind="regrade", commit=git_rev(), at=stamp(), rows=out)
+    (run_dir / f"regrade-{res['at']}.json").write_text(json.dumps(res, indent=2) + "\n")
+    return 0
+
+
 def cmd_list(a):
     for sid in scenario_ids([]):
         wrong = len(list((SCEN / sid / "wrong").iterdir())) if (SCEN / sid / "wrong").exists() else 0
@@ -282,6 +323,10 @@ def main():
     g.add_argument("-j", "--jobs", type=int, default=2)
     g.add_argument("--max-turns", type=int, default=40)
     g.set_defaults(fn=cmd_agent)
+    rg = sub.add_parser("regrade")
+    rg.add_argument("run", help="results/agent-... directory")
+    rg.add_argument("ids", nargs="*")
+    rg.set_defaults(fn=cmd_regrade)
     sub.add_parser("list").set_defaults(fn=cmd_list)
     a = ap.parse_args()
     sys.exit(a.fn(a))

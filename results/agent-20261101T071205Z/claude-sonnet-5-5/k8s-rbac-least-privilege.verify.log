@@ -1,0 +1,9 @@
+$ k8s_deploy (broken)
+serviceaccount/log-shipper created
+clusterrolebinding.rbac.authorization.k8s.io/log-shipper-admin created
+
+$ check.sh
+serviceaccount/log-shipper created
+role.rbac.authorization.k8s.io/log-shipper created
+rolebinding.rbac.authorization.k8s.io/log-shipper created
+ok: log-shipper limited to pods + pods/log in k8s-rbac-least-privilege

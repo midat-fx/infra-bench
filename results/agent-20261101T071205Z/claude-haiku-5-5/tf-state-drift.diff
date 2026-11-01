@@ -1,0 +1,18 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/tf-state-drift/workspace/main.tf ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-haiku-5-5/tf-state-drift/main.tf
+--- <repo>/scenarios/tf-state-drift/workspace/main.tf	2026-11-01 09:14:07
++++ ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-haiku-5-5/tf-state-drift/main.tf	2026-11-01 10:26:03
+@@ -1,9 +1,11 @@
+ resource "aws_sqs_queue" "jobs" {
+-  name_prefix                = "jobs-"
+-  visibility_timeout_seconds = 30
++  name_prefix = "jobs-"
++  # Workers need ~4 min per job (INC-2291).
++  visibility_timeout_seconds = 300
+   message_retention_seconds  = 345600
+   tags = {
+-    team = "billing"
++    team   = "billing"
++    oncall = "INC-2291"
+   }
+ }
+ 

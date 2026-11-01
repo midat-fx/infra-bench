@@ -1,0 +1,41 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/k8s-rbac-least-privilege/workspace/rbac.yaml ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-sonnet-5-5/k8s-rbac-least-privilege/rbac.yaml
+--- <repo>/scenarios/k8s-rbac-least-privilege/workspace/rbac.yaml	2026-11-01 08:52:27
++++ ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-sonnet-5-5/k8s-rbac-least-privilege/rbac.yaml	2026-11-01 10:27:54
+@@ -4,17 +4,32 @@
+   name: log-shipper
+   namespace: k8s-rbac-least-privilege
+ ---
+-# TODO(platform): temporary, copied from the quick-start guide.
+ apiVersion: rbac.authorization.k8s.io/v1
+-kind: ClusterRoleBinding
++kind: Role
+ metadata:
+-  name: log-shipper-admin
++  name: log-shipper
++  namespace: k8s-rbac-least-privilege
+   labels:
+     bench: k8s-rbac-least-privilege
++rules:
++  - apiGroups: [""]
++    resources: ["pods"]
++    verbs: ["get", "list", "watch"]
++  - apiGroups: [""]
++    resources: ["pods/log"]
++    verbs: ["get"]
++---
++apiVersion: rbac.authorization.k8s.io/v1
++kind: RoleBinding
++metadata:
++  name: log-shipper
++  namespace: k8s-rbac-least-privilege
++  labels:
++    bench: k8s-rbac-least-privilege
+ roleRef:
+   apiGroup: rbac.authorization.k8s.io
+-  kind: ClusterRole
+-  name: cluster-admin
++  kind: Role
++  name: log-shipper
+ subjects:
+   - kind: ServiceAccount
+     name: log-shipper

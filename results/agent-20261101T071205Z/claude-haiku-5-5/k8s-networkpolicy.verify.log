@@ -1,0 +1,12 @@
+$ k8s_deploy (broken)
+Unable to connect to the server: net/http: TLS handshake timeout
+Unable to connect to the server: net/http: TLS handshake timeout
+
+$ check.sh
+deployment.apps/api created
+service/api created
+deployment.apps/frontend created
+deployment.apps/batch created
+networkpolicy.networking.k8s.io/default-deny-ingress created
+networkpolicy.networking.k8s.io/frontend-to-api created
+ok: frontend -> api allowed, batch -> api denied

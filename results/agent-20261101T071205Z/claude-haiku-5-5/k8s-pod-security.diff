@@ -1,0 +1,23 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/k8s-pod-security/workspace/worker.yaml ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-haiku-5-5/k8s-pod-security/worker.yaml
+--- <repo>/scenarios/k8s-pod-security/workspace/worker.yaml	2026-11-01 08:52:58
++++ ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-haiku-5-5/k8s-pod-security/worker.yaml	2026-11-01 10:18:38
+@@ -12,10 +12,19 @@
+       labels: {app: thumbnailer}
+     spec:
+       terminationGracePeriodSeconds: 1
++      securityContext:
++        runAsNonRoot: true
++        runAsUser: 1000
++        seccompProfile:
++          type: RuntimeDefault
+       containers:
+         - name: worker
+           image: busybox:1.37.0
+           command: ["sh", "-c", "touch /tmp/ready && exec sleep infinity"]
++          securityContext:
++            allowPrivilegeEscalation: false
++            capabilities:
++              drop: ["ALL"]
+           readinessProbe:
+             exec:
+               command: ["test", "-f", "/tmp/ready"]

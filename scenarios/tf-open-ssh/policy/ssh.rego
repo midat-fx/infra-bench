@@ -2,6 +2,12 @@ package main
 
 import rego.v1
 
+# Provider state uses null, not [], for unset list attributes. array.concat
+# on null is undefined and would silently drop the whole rule.
+arr(x) := x if is_array(x)
+
+arr(x) := [] if not is_array(x)
+
 resources contains r if {
 	some path, value
 	walk(input.values.root_module, [path, value])
@@ -18,7 +24,7 @@ web := g if {
 # blocks, aws_security_group_rule and aws_vpc_security_group_ingress_rule.
 ingress contains {"from": r.from_port, "to": r.to_port, "proto": r.protocol, "cidr": c} if {
 	some r in web.values.ingress
-	some c in array.concat(r.cidr_blocks, r.ipv6_cidr_blocks)
+	some c in array.concat(arr(r.cidr_blocks), arr(r.ipv6_cidr_blocks))
 }
 
 ingress contains {"from": r.values.from_port, "to": r.values.to_port, "proto": r.values.protocol, "cidr": c} if {
@@ -26,7 +32,7 @@ ingress contains {"from": r.values.from_port, "to": r.values.to_port, "proto": r
 	r.type == "aws_security_group_rule"
 	r.values.type == "ingress"
 	r.values.security_group_id == web.values.id
-	some c in array.concat(object.get(r.values, "cidr_blocks", []), object.get(r.values, "ipv6_cidr_blocks", []))
+	some c in array.concat(arr(object.get(r.values, "cidr_blocks", [])), arr(object.get(r.values, "ipv6_cidr_blocks", [])))
 }
 
 ingress contains {"from": object.get(r.values, "from_port", -1), "to": object.get(r.values, "to_port", -1), "proto": r.values.ip_protocol, "cidr": c} if {

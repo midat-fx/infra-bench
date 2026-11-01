@@ -2,6 +2,12 @@ package main
 
 import rego.v1
 
+# Provider state uses null, not [], for unset list attributes. array.concat
+# on null is undefined and would silently drop the whole rule.
+arr(x) := x if is_array(x)
+
+arr(x) := [] if not is_array(x)
+
 resources contains r if {
 	some path, value
 	walk(input.values.root_module, [path, value])
@@ -25,15 +31,15 @@ covers(from, to, proto) if {
 
 # One normalised rule list from the three ways the AWS provider can express
 # a rule: inline blocks, aws_security_group_rule, aws_vpc_security_group_*_rule.
-rules contains {"sg": g.values.id, "dir": dir, "from": r.from_port, "to": r.to_port, "proto": r.protocol, "peer": peer, "cidrs": array.concat(r.cidr_blocks, r.ipv6_cidr_blocks)} if {
+rules contains {"sg": g.values.id, "dir": dir, "from": r.from_port, "to": r.to_port, "proto": r.protocol, "peer": peer, "cidrs": array.concat(arr(r.cidr_blocks), arr(r.ipv6_cidr_blocks))} if {
 	some g in resources
 	g.type == "aws_security_group"
 	some dir in ["ingress", "egress"]
 	some r in g.values[dir]
-	some peer in array.concat(r.security_groups, ["none"])
+	some peer in array.concat(arr(r.security_groups), ["none"])
 }
 
-rules contains {"sg": r.values.security_group_id, "dir": r.values.type, "from": r.values.from_port, "to": r.values.to_port, "proto": r.values.protocol, "peer": object.get(r.values, "source_security_group_id", null), "cidrs": array.concat(object.get(r.values, "cidr_blocks", []), object.get(r.values, "ipv6_cidr_blocks", []))} if {
+rules contains {"sg": r.values.security_group_id, "dir": r.values.type, "from": r.values.from_port, "to": r.values.to_port, "proto": r.values.protocol, "peer": object.get(r.values, "source_security_group_id", null), "cidrs": array.concat(arr(object.get(r.values, "cidr_blocks", [])), arr(object.get(r.values, "ipv6_cidr_blocks", [])))} if {
 	some r in resources
 	r.type == "aws_security_group_rule"
 }

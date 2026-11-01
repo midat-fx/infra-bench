@@ -1,0 +1,32 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/tf-iam-least-privilege/workspace/main.tf ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-sonnet-5-5/tf-iam-least-privilege/main.tf
+--- <repo>/scenarios/tf-iam-least-privilege/workspace/main.tf	2026-11-01 09:00:10
++++ ~/.cache/infra-bench-agent/agent-20261101T071205Z/claude-sonnet-5-5/tf-iam-least-privilege/main.tf	2026-11-01 10:29:02
+@@ -18,16 +18,22 @@
+   })
+ }
+ 
+-# Quick fix from the incident on-call: "just make it work".
+ resource "aws_iam_policy" "exporter" {
+   name_prefix = "exporter-"
+   policy = jsonencode({
+     Version = "2012-10-17"
+-    Statement = [{
+-      Effect   = "Allow"
+-      Action   = "*"
+-      Resource = "*"
+-    }]
++    Statement = [
++      {
++        Effect   = "Allow"
++        Action   = ["s3:GetObject", "s3:PutObject"]
++        Resource = "${aws_s3_bucket.exports.arn}/*"
++      },
++      {
++        Effect   = "Allow"
++        Action   = ["sqs:SendMessage"]
++        Resource = aws_sqs_queue.export_done.arn
++      }
++    ]
+   })
+ }
+ 

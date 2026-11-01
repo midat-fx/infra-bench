@@ -148,10 +148,13 @@ The wrappers reveal the repository path, so isolation is not airtight. Instead
 of pretending otherwise, every run records `peeked`: whether any tool call
 touched a `scenarios/` path. The transcript is kept in `results/` for audit.
 
-User-level Claude Code settings, MCP servers and skills are switched off for
-these runs (`--setting-sources project --strict-mcp-config
---disable-slash-commands`). `--bare` would also drop the user's global
-CLAUDE.md, but it requires an API key, and these runs use the subscription.
+User-level Claude Code settings, hooks, MCP servers and skills are switched
+off for these runs (`--setting-sources project --strict-mcp-config
+--disable-slash-commands`; the scratch directory has no project settings), and
+the tool set is cut to `Bash,Read,Edit,Write,Glob,Grep`. Models are passed by
+full ID: the CLI alias `haiku` resolved to Haiku 4.5, not 5.5, which is why the
+first agent run in `results/` is labelled that way. The model actually used is
+taken from the transcript's init event, not from the flag.
 
 ## What is deliberately not here
 
