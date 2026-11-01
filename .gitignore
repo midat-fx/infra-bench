@@ -1,0 +1,4 @@
+.work/
+.cache/
+.bin/
+__pycache__/

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-api
+  namespace: k8s-oom-crashloop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: report-api
+  template:
+    metadata:
+      labels:
+        app: report-api
+    spec:
+      terminationGracePeriodSeconds: 2
+      containers:
+        - name: api
+          image: busybox:1.37.0
+          env:
+            # The report cache is loaded into memory at start-up.
+            - name: CACHE_MB
+              value: "48"
+          command: ["sh", "-c"]
+          args:
+            - |
+              dd if=/dev/zero of=/dev/null bs=${CACHE_MB}M count=1 2>/dev/null
+              mkdir -p /www && echo ok > /www/index.html
+              exec httpd -f -p 8080 -h /www
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
