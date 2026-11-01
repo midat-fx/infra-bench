@@ -45,6 +45,23 @@ WORK = ROOT / ".work"
 AGENT_WORK = Path.home() / ".cache" / "infra-bench-agent"
 
 
+# Stream events about the operator's account (rate limits, overage/credit
+# status), not about the run. Never committed.
+ACCOUNT_EVENT_PREFIX = "rate_limit"
+
+
+def drop_account_events(stream: str) -> str:
+    keep = []
+    for line in stream.splitlines():
+        try:
+            if str(json.loads(line).get("type", "")).startswith(ACCOUNT_EVENT_PREFIX):
+                continue
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        keep.append(line)
+    return "\n".join(keep) + "\n"
+
+
 def scrub(text: str) -> str:
     """Keep machine-specific paths and the local user name out of committed logs."""
     home = str(Path.home())
@@ -241,7 +258,7 @@ def agent_one(sid: str, model: str, run_dir: Path, max_turns: int):
     fail_lines = [l for l in vout.splitlines() if l.startswith("FAIL:")]
     out_dir = run_dir / model
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / f"{sid}.jsonl").write_text(scrub(out))
+    (out_dir / f"{sid}.jsonl").write_text(scrub(drop_account_events(out)))
     (out_dir / f"{sid}.verify.log").write_text(scrub("\n".join(log)))
     _, patch = sh(["diff", "-ruN", "-x", ".*", "-x", "terraform.tfstate*", str(SCEN / sid / "workspace"), str(ws)])
     (out_dir / f"{sid}.diff").write_text(scrub(patch))
