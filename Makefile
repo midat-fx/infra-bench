@@ -3,11 +3,15 @@
 JOBS ?= 3
 IDS ?=
 
-.PHONY: test up down validate list agent purge
+.PHONY: test policy-test up down validate list agent purge
 
-test:
+test: policy-test
 	@bash lib/cluster.sh up && python3 bench.py validate -j $(JOBS) $(IDS); rc=$$?; \
 	  [ "$(KEEP)" = 1 ] || bash lib/cluster.sh down; exit $$rc
+
+# Rego unit tests only: no cluster, a few seconds.
+policy-test:
+	@bash lib/policy-test.sh
 
 up:
 	@bash lib/cluster.sh up
