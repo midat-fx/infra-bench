@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/report-api created
+ok: report-api stable with limit 128Mi

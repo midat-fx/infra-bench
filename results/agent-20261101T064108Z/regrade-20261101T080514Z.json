@@ -1,0 +1,84 @@
+{
+  "kind": "regrade",
+  "commit": "e6990ff",
+  "at": "20261101T080514Z",
+  "rows": [
+    {
+      "scenario": "k8s-networkpolicy",
+      "model": "haiku",
+      "was": false,
+      "now": false,
+      "reason": "FAIL: frontend cannot reach api"
+    },
+    {
+      "scenario": "k8s-oom-crashloop",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-pod-security",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-rbac-least-privilege",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-readiness-port",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-service-selector",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-hardcoded-secret",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-iam-least-privilege",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-s3-encryption",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    }
+  ]
+}

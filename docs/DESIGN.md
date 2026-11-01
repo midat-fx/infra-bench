@@ -10,7 +10,9 @@ reference fix (`solution/`), several plausible wrong fixes (`wrong/*/`) and a
 verifier (`check.sh`). The runner proves every verifier on every run:
 
 - the broken workspace must be **rejected**;
-- the reference fix must be **accepted**;
+- the reference fix must be **accepted**, and so must every `alt/*/` fix: a
+  correct fix written in another style (inline security group blocks instead
+  of rule resources, an inline role policy instead of policy + attachment);
 - every wrong fix must be **rejected, for the intended reason**: each wrong fix
   carries an `_expect` string that has to show up in the verifier output.
 
@@ -43,6 +45,29 @@ two kinds of things:
 Behaviour-only verifiers accept "delete the probe" and "remove the limit".
 Policy-only verifiers (static linting of the YAML) accept manifests that never
 start. Each scenario's wrong fixes include at least one of each kind.
+
+Wrong fixes guard against false accepts; `alt/` fixes guard against false
+rejects. A verifier that only recognises the reference fix's shape is as
+broken as one that accepts anything, it just fails the other way.
+
+## A verifier bug the agent runs found
+
+The first Haiku 5.5 run "failed" `tf-module-cycle` with a fix that was
+correct: it moved both rules to the root module as `aws_security_group_rule`
+resources. The Rego dropped those rules. In Terraform state an unset list
+attribute is `null`, not `[]`, and `array.concat(null, ...)` is undefined in
+Rego, so the rule body silently produced nothing. The same pattern in
+`tf-open-ssh` was worse: SSH from `0.0.0.0/0` written as an
+`aws_security_group_rule` passed the policy. Both are fixed (an `arr()` helper
+maps null to `[]`), and the cases that exposed them are now permanent:
+`tf-open-ssh/wrong/legacy-rule` must fail, `tf-module-cycle/alt/root-sg-rules`
+must pass. Reproduction and before/after output:
+`results/policy-null-bug-20261101/`.
+
+`bench.py regrade` re-runs today's verifiers over a past agent run, rebuilding
+each workspace from the saved diff, so a verifier fix can be checked against
+every recorded agent answer, not only the one that exposed it. The drift
+scenario is not regradable: its verdict depends on live LocalStack state.
 
 ## Kubernetes: kubectl runs inside the kind node
 
