@@ -30,10 +30,11 @@ tf_apply() {
 # each deny message as "FAIL - ... - <msg>"; we normalise to "FAIL: <msg>".
 tf_policy() {
   local ws=$1 policy=$2 out
-  tf "$ws" show -json -no-color >"$ws/.state.json" || fail "terraform show failed"
-  out=$(docker run --rm -v "$ws:/ws" -v "$policy:/policy" "$CONFTEST_IMAGE" \
-    test --no-color --all-namespaces -p /policy /ws/.state.json 2>&1) && { ok "policy"; return 0; }
-  sed -nE 's/^FAIL - [^ ]+ - (main - )?/FAIL: /p' <<<"$out"
+  # Piped, not via a file: virtiofs can serve a stale (empty) copy of a file
+  # the host just wrote to a container in the VM.
+  out=$(tf "$ws" show -json -no-color | docker run --rm -i -v "$policy:/policy" "$CONFTEST_IMAGE" \
+    test --no-color --all-namespaces -p /policy - 2>&1) && { ok "policy"; return 0; }
+  sed -nE 's/^FAIL - (- )?(main - )?/FAIL: /p' <<<"$out"
   grep -q '^FAIL - ' <<<"$out" || echo "$out"
   exit 1
 }

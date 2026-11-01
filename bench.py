@@ -102,7 +102,8 @@ def validate_one(sid: str, run_dir: Path):
                     log.append(f"$ _post.sh\n{out}")
             passed, out, secs = verify(sid, ws, log)
             fail_lines = [l for l in out.splitlines() if l.startswith("FAIL:")]
-            reason = fail_lines[-1] if fail_lines else ""
+            hit = [l for l in fail_lines if expect and expect in l]
+            reason = (hit or fail_lines or [""])[0]
             good = passed == want_pass and (expect is None or expect in out)
         except RuntimeError as e:
             passed, reason, secs, good = False, str(e).splitlines()[0], 0.0, False
