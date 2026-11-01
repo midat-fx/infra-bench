@@ -66,14 +66,19 @@ pass the broken bucket, and what is deliberately left out.
 
 ### Verifier validation
 
-| Run | Verdicts correct | Wall time | Raw |
-|---|---|---|---|
-| macOS arm64, colima 4 CPU / 6 GB shared with other jobs, `-j 3` | **66/66** (15 must-pass, 51 must-fail) | 770.5 s | `results/validate-20261101T082833Z/` |
-| same machine, one run earlier | 65/66 | 1290.4 s | `results/validate-20261101T080538Z/` |
-| GitHub Actions `ubuntu-24.04`, clean checkout | 65/66 | 834.4 s | `results/ci-41288960042/` |
-| GitHub Actions, after the fix below | CI2_RESULT | CI2_WALL | CI2_PATH |
+| Run | Commit | Verdicts correct | Wall time | Raw |
+|---|---|---|---|---|
+| macOS arm64, colima 4 CPU / 6 GB shared with other jobs, `-j 3` | `6c2d5d1` | 65/66 | 1290.4 s | `results/validate-20261101T080538Z/` |
+| same machine, after the timeout fix | `c175d29` | **66/66** (15 must-pass, 51 must-fail) | 770.5 s | `results/validate-20261101T082833Z/` |
+| GitHub Actions `ubuntu-24.04`, clean checkout | `c175d29` | 65/66 | 834.4 s | `results/ci-41288960042/` |
+| GitHub Actions, after the OOM reason fix | `58258e0` | **66/66** | 808.9 s | `results/ci-41290109989/` |
 
-The 65/66 run was an environment failure, not a verifier one: under heavy
+The CI rows' `summary.json` say `-dirty`: the warm-up `terraform init` output
+in `lib/tf-warm/` had been committed by mistake, and on the amd64 runner init
+added files next to it. No scenario, library or runner file differed; the
+files are untracked since.
+
+The 65/66 local run was an environment failure, not a verifier one: under heavy
 load a namespace took longer than the then 120 s delete timeout, and the
 attempt ended with no verdict. Since then the timeout is 300 s, an attempt
 with no verdict (or a `FAIL: infra:` one) is retried once, and an infra
