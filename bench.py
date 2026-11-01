@@ -104,29 +104,38 @@ def validate_one(sid: str, run_dir: Path):
     rows = []
     for name, src in attempts(sid):
         ws = WORK / run_dir.name / sid / name.replace("/", "-")
-        log = []
         want_pass = name == "solution" or name.startswith("alt/")
         expect = (src / "_expect").read_text().strip() if src and (src / "_expect").exists() else None
-        try:
-            prepare(sid, ws, log)
-            if src:
-                overlay(src, ws)
-                if (src / "_post.sh").exists():
-                    rc, out = sh(["bash", str(src / "_post.sh")], cwd=ws,
-                                 env={**os.environ, "IB_ROOT": str(ROOT)})
-                    log.append(f"$ _post.sh\n{out}")
-            passed, out, secs = verify(sid, ws, log)
+        for tries in (1, 2):
+            log = []
+            try:
+                prepare(sid, ws, log)
+                if src:
+                    overlay(src, ws)
+                    if (src / "_post.sh").exists():
+                        rc, out = sh(["bash", str(src / "_post.sh")], cwd=ws,
+                                     env={**os.environ, "IB_ROOT": str(ROOT)})
+                        log.append(f"$ _post.sh\n{out}")
+                passed, out, secs = verify(sid, ws, log)
+            except RuntimeError as e:
+                passed, out, secs = False, f"FAIL: infra: {str(e).splitlines()[0]}", 0.0
             fail_lines = [l for l in out.splitlines() if l.startswith("FAIL:")]
-            hit = [l for l in fail_lines if expect and expect in l]
-            reason = (hit or fail_lines or [""])[0]
-            good = passed == want_pass and (expect is None or expect in out)
-        except RuntimeError as e:
-            passed, reason, secs, good = False, str(e).splitlines()[0], 0.0, False
+            # No verdict line, or one marked infra: the environment broke, not
+            # the candidate (e.g. a namespace that would not delete under
+            # load). Retry once; a second infra failure stays a failure.
+            infra = not passed and (not fail_lines or fail_lines[0].startswith("FAIL: infra:"))
+            if not infra or tries == 2:
+                break
+            print(f"... {sid} {name}: infra error, retrying", flush=True)
+        hit = [l for l in fail_lines if expect and expect in l]
+        reason = (hit or fail_lines or [""])[0]
+        # An infra failure is never a correct rejection.
+        good = passed == want_pass and (expect is None or expect in out) and not infra
         (run_dir / sid).mkdir(parents=True, exist_ok=True)
         (run_dir / sid / f"{name.replace('/', '-')}.log").write_text(scrub("\n".join(log)))
         row = dict(scenario=sid, attempt=name, expected="pass" if want_pass else "fail",
                    got="pass" if passed else "fail", reason=reason, expect=expect,
-                   ok=good, verify_seconds=secs)
+                   ok=good, verify_seconds=secs, tries=tries)
         rows.append(row)
         print(f"{'ok ' if good else 'BAD'} {sid:28} {name:28} {row['got']:4} {secs:5.1f}s {reason}", flush=True)
         shutil.rmtree(ws, ignore_errors=True)

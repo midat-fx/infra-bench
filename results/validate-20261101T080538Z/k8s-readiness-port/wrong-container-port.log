@@ -1,0 +1,4 @@
+$ check.sh
+deployment.apps/storefront created
+service/storefront created
+FAIL: deployment k8s-readiness-port/storefront not available after 40s

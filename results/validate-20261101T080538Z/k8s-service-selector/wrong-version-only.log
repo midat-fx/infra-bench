@@ -1,0 +1,2 @@
+$ check.sh
+error: timed out waiting for the condition on namespaces/k8s-service-selector

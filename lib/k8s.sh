@@ -17,7 +17,7 @@ k8s_reset() {
   done
   if k get ns "$ns" >/dev/null 2>&1; then
     k delete pods --all -n "$ns" --force --grace-period=0 >/dev/null 2>&1 || true
-    k delete ns "$ns" --wait=true --timeout=120s >/dev/null
+    k delete ns "$ns" --wait=true --timeout=300s >/dev/null || fail "infra: namespace $ns not deleted in 300s"
   fi
 }
 

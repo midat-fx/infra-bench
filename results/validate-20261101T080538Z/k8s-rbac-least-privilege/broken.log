@@ -1,0 +1,4 @@
+$ check.sh
+serviceaccount/log-shipper created
+clusterrolebinding.rbac.authorization.k8s.io/log-shipper-admin created
+FAIL: can list pods in kube-system
