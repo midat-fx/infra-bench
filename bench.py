@@ -36,10 +36,10 @@ SCEN = ROOT / "scenarios"
 WORK = ROOT / ".work"
 
 
-def sh(cmd, cwd=None, timeout=600):
-    """Run a bash script/command; return (rc, combined output)."""
+def sh(cmd, cwd=None, timeout=600, env=None):
+    """Run a command; return (rc, combined output)."""
     try:
-        p = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        p = subprocess.run(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                            text=True, timeout=timeout)
         return p.returncode, p.stdout
     except subprocess.TimeoutExpired:
@@ -98,7 +98,8 @@ def validate_one(sid: str, run_dir: Path):
             if src:
                 overlay(src, ws)
                 if (src / "_post.sh").exists():
-                    rc, out = sh(["bash", str(src / "_post.sh")], cwd=ws)
+                    rc, out = sh(["bash", str(src / "_post.sh")], cwd=ws,
+                                 env={**os.environ, "IB_ROOT": str(ROOT)})
                     log.append(f"$ _post.sh\n{out}")
             passed, out, secs = verify(sid, ws, log)
             fail_lines = [l for l in out.splitlines() if l.startswith("FAIL:")]
