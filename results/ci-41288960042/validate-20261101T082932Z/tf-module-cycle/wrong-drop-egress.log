@@ -1,0 +1,2 @@
+$ check.sh
+FAIL: app has no egress to the db group on 5432

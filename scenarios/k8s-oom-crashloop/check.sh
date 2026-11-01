@@ -17,5 +17,9 @@ awk -v m="$mib" 'BEGIN{exit !(m > 0 && m <= 256)}' || fail "memory limit $lim ex
 k8s_wait_available $NS report-api 60
 sleep 10
 r=$(k8s_restarts $NS app=report-api)
-[ "$r" = 0 ] || fail "pods restarted $r times after becoming ready"
+# Between crashes both pods can look Ready for a moment, so the early OOM
+# check in k8s_wait_available can miss it; name the reason here too.
+why=$(k get pods -n $NS -l app=report-api -o json |
+  jq -r '[.items[].status.containerStatuses[]?.lastState.terminated.reason // empty] | unique | join(",")')
+[ "$r" = 0 ] || fail "pods restarted $r times after becoming ready (last termination: ${why:-unknown})"
 ok "report-api stable with limit $lim"

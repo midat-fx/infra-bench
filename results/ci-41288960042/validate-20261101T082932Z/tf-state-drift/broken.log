@@ -1,0 +1,9 @@
+$ setup.sh
+
+$ check.sh
+  ~ update in-place
+  # aws_sqs_queue.jobs will be updated in-place
+  ~ resource "aws_sqs_queue" "jobs" {
+            # (1 unchanged element hidden)
+        # (17 unchanged attributes hidden)
+FAIL: terraform plan is not clean (exit 2)

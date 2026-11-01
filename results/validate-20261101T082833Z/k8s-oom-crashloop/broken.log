@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/report-api created
+FAIL: pods restarted 2 times after becoming ready

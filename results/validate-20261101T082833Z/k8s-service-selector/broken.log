@@ -1,0 +1,5 @@
+$ check.sh
+deployment.apps/web created
+deployment.apps/admin created
+service/shop-public created
+FAIL: endpoints [], want web pods ["10.244.0.38","10.244.0.40"]

@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/report-api created
+FAIL: CACHE_MB must stay 48

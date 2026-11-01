@@ -1,0 +1,3 @@
+$ check.sh
+FAIL: HTTPS is no longer open from 0.0.0.0/0
+FAIL: HTTPS is no longer open from ::/0

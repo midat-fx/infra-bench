@@ -5,12 +5,13 @@ the fix for real. Kubernetes scenarios run on a local [kind](https://kind.sigs.k
 cluster; Terraform scenarios apply against [LocalStack](https://github.com/localstack/localstack).
 No cloud account, no credentials.
 
-The point is the verifiers. Each scenario ships a reference fix and two to four
-**plausible wrong fixes**: the shortcuts a tired engineer or a coding agent
+The point is the verifiers. Each scenario ships a reference fix, sometimes an
+equivalent fix in another style, and two to four **plausible wrong fixes**: the shortcuts a tired engineer or a coding agent
 takes (delete the probe, remove the memory limit, relax the namespace policy,
 `ignore_changes` the drift away, `s3:*` instead of `*`). `make test` proves on
-every run that each verifier rejects the broken setup, accepts the reference
-fix, and rejects every wrong fix *for the reason it was written to catch*.
+every run that each verifier rejects the broken setup, accepts the correct
+fixes, and rejects every wrong fix *for the reason it was written to catch*:
+12 scenarios, 66 verdicts.
 
 ```bash
 make test
@@ -36,12 +37,13 @@ installed.
 | `tf-iam-least-privilege` | task role with `Action: *`, `Resource: *` | `s3:*` · right actions on `Resource: *` · forget `sqs:SendMessage` · `NotAction` |
 | `tf-state-drift` | console change to an SQS queue, plan wants to revert it | `terraform apply` the old code · `ignore_changes` · `terraform state rm` |
 | `tf-module-cycle` | two modules need each other's security group ID: `Error: Cycle` | VPC CIDR rules instead of SG references · drop the egress rule |
-| `tf-open-ssh` | SSH from `0.0.0.0/0` and `::/0` | close IPv4 only · `0-65535` rule that still covers 22 · drop HTTPS too |
+| `tf-open-ssh` | SSH from `0.0.0.0/0` and `::/0` | close IPv4 only · `0-65535` rule that still covers 22 · drop HTTPS too · open SSH re-added as `aws_security_group_rule` |
 | `tf-hardcoded-secret` | DB password literal in `main.tf` | move it to `terraform.tfvars` · 12-char `random_password` · a new literal |
 
 Each scenario lives in `scenarios/<id>/`: `task.md` (what the fixer is told),
-`workspace/` (broken files), `solution/`, `wrong/*/`, `check.sh` (verifier)
-and, for Terraform, `policy/*.rego`.
+`workspace/` (broken files), `solution/`, `alt/*/` (other correct fixes, in
+three scenarios), `wrong/*/`, `check.sh` (verifier) and, for Terraform,
+`policy/*.rego`.
 
 ## How the verifiers work
 
@@ -62,7 +64,63 @@ pass the broken bucket, and what is deliberately left out.
 
 ## Results
 
-RESULTS_PLACEHOLDER
+### Verifier validation
+
+| Run | Verdicts correct | Wall time | Raw |
+|---|---|---|---|
+| macOS arm64, colima 4 CPU / 6 GB shared with other jobs, `-j 3` | **66/66** (15 must-pass, 51 must-fail) | 770.5 s | `results/validate-20261101T082833Z/` |
+| same machine, one run earlier | 65/66 | 1290.4 s | `results/validate-20261101T080538Z/` |
+| GitHub Actions `ubuntu-24.04`, clean checkout | 65/66 | 834.4 s | `results/ci-41288960042/` |
+| GitHub Actions, after the fix below | CI2_RESULT | CI2_WALL | CI2_PATH |
+
+The 65/66 run was an environment failure, not a verifier one: under heavy
+load a namespace took longer than the then 120 s delete timeout, and the
+attempt ended with no verdict. Since then the timeout is 300 s, an attempt
+with no verdict (or a `FAIL: infra:` one) is retried once, and an infra
+failure never counts as a correct rejection. Median verifier time per attempt
+in the 66/66 run: 14.5 s Kubernetes, 27.3 s Terraform (`verify_seconds` in
+`summary.json`).
+
+The first CI run's miss was a reason mismatch, not a false verdict:
+`k8s-oom-crashloop/wrong/requests-only` was rejected, but by the restart
+counter instead of with the expected `OOMKilled`. Between crashes both pods
+can look Ready for a moment, so the early OOM check is racy. The restart check
+now names the last termination reason.
+
+### Agent runs
+
+36 runs of `claude -p` (Claude Code 2.1.220), one per model and scenario,
+max 40 turns, the broken system live, verified with the same `check.sh`:
+
+| Model | Solved as graded | After regrade | Median turns | Median agent time | Total cost |
+|---|---|---|---|---|---|
+| `claude-haiku-4-5-20251001` | 11/12 | 11/12 | 8 | 28.3 s | $0.76 |
+| `claude-haiku-5-5` | 11/12 | **12/12** | 7 | 29.3 s | $3.58 |
+| `claude-sonnet-5-5` | 12/12 | 12/12 | 6 | 23.3 s | $1.25 |
+
+Raw: `results/agent-20261101T064108Z/` (Haiku 4.5) and
+`results/agent-20261101T071205Z/` (5.5 models): transcripts (`*.jsonl`), the
+agent's diff, verifier logs, `summary.json`, `regrade-*.json`. Cost is the
+CLI's `total_cost_usd`. No run touched `scenarios/` (`peeked: false` in every
+row).
+
+The two misses are the interesting part:
+
+- **Haiku 4.5, `k8s-networkpolicy`**: fixed the pod label, left the policy
+  port at the Service port (80, not the pod's 8080), and reported success
+  without testing traffic. That is exactly `wrong/service-port`, written before
+  any agent ran; the verifier rejected it with `frontend cannot reach api`.
+- **Haiku 5.5, `tf-module-cycle`**: the agent was right and the verifier was
+  wrong. It moved both rules to root-level `aws_security_group_rule`
+  resources; the Rego dropped them because Terraform state stores unset lists
+  as `null`. The same bug made `tf-open-ssh` *accept* SSH from `0.0.0.0/0`
+  written in that style. Fixed, guarded by a new wrong fix and three `alt/`
+  fixes, and `bench.py regrade` re-checked all 33 regradable agent answers
+  with the fixed verifiers: this was the only verdict that changed. Details:
+  `results/policy-null-bug-20261101/` and [docs/DESIGN.md](docs/DESIGN.md).
+
+Twelve scenarios at one run per model is a smoke test of the harness, not a
+model ranking.
 
 ## Other targets
 
