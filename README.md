@@ -58,6 +58,11 @@ policies read the applied state, where references are resolved, so "encryption
 on some other bucket" is detectable. The drift scenario instead inspects the
 live queue and runs `terraform plan -detailed-exitcode` on the prepared state.
 
+The Rego policies also have their own unit tests (`policy/*_test.rego`), on
+small hand-written state fixtures: one passing fix and the key rejections per
+policy, including the null-list regression described below. `make policy-test`
+runs them in seconds without a cluster, and `make test` runs them first.
+
 [docs/DESIGN.md](docs/DESIGN.md) explains each choice: why kubectl runs inside
 the kind node, why apply rather than plan, why a live encryption check would
 pass the broken bucket, and what is deliberately left out.
@@ -135,6 +140,7 @@ model ranking.
 ## Other targets
 
 ```bash
+make policy-test            # Rego unit tests only, no cluster
 make test KEEP=1            # leave the cluster up afterwards
 make validate IDS="tf-open-ssh k8s-pod-security"   # against a running cluster
 make list

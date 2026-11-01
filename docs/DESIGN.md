@@ -64,6 +64,15 @@ maps null to `[]`), and the cases that exposed them are now permanent:
 must pass. Reproduction and before/after output:
 `results/policy-null-bug-20261101/`.
 
+The full run catches a regression like this only after a minute of `terraform
+apply`. So each policy also has `conftest verify` unit tests on hand-written
+state fixtures that copy the shapes the provider really writes (`null` lists
+included). They live in a separate `main_test` package, so their helper names
+cannot collide with the policy's rules and `conftest test` never evaluates them.
+I checked them with mutants: restoring the pre-fix `ssh.rego` or `sg.rego`,
+deleting the `NotAction` rule, lowering the password minimum to 8, or skipping
+the algorithm check each turns exactly the intended test red.
+
 `bench.py regrade` re-runs today's verifiers over a past agent run, rebuilding
 each workspace from the saved diff, so a verifier fix can be checked against
 every recorded agent answer, not only the one that exposed it. The drift

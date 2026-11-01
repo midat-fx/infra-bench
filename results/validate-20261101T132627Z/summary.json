@@ -1,0 +1,144 @@
+{
+  "kind": "validate",
+  "commit": "671cf00-dirty",
+  "started": "20261101T132627Z",
+  "jobs": 2,
+  "wall_seconds": 294.5,
+  "scenarios": 2,
+  "attempts": 12,
+  "correct": 12,
+  "rows": [
+    {
+      "scenario": "tf-open-ssh",
+      "attempt": "broken",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: port 22 reachable via tcp/22-22 from 0.0.0.0/0",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 22.3,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "attempt": "solution",
+      "expected": "pass",
+      "got": "pass",
+      "reason": "",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 21.1,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "attempt": "alt/inline-blocks",
+      "expected": "pass",
+      "got": "pass",
+      "reason": "",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 65.4,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "attempt": "wrong/drop-https",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: HTTPS is no longer open from 0.0.0.0/0",
+      "expect": "HTTPS is no longer open",
+      "ok": true,
+      "verify_seconds": 81.4,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "attempt": "wrong/ipv6-left-open",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: port 22 reachable via tcp/22-22 from ::/0",
+      "expect": "from ::/0",
+      "ok": true,
+      "verify_seconds": 46.7,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "attempt": "wrong/legacy-rule",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: port 22 reachable via tcp/22-22 from 0.0.0.0/0",
+      "expect": "port 22 reachable via tcp/22-22 from 0.0.0.0/0",
+      "ok": true,
+      "verify_seconds": 29.4,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "attempt": "wrong/wide-range",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: port 22 reachable via tcp/0-65535 from 0.0.0.0/0",
+      "expect": "tcp/0-65535 from 0.0.0.0/0",
+      "ok": true,
+      "verify_seconds": 28.0,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "attempt": "broken",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: terraform apply failed",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 4.3,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "attempt": "solution",
+      "expected": "pass",
+      "got": "pass",
+      "reason": "",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 22.0,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "attempt": "alt/root-sg-rules",
+      "expected": "pass",
+      "got": "pass",
+      "reason": "",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 34.4,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "attempt": "wrong/cidr-rule",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: db accepts tcp/5432 from CIDR [\"10.40.0.0/16\"]",
+      "expect": "accepts tcp/5432 from CIDR",
+      "ok": true,
+      "verify_seconds": 72.1,
+      "tries": 1
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "attempt": "wrong/drop-egress",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: app has no egress to the db group on 5432",
+      "expect": "app has no egress to the db group on 5432",
+      "ok": true,
+      "verify_seconds": 66.9,
+      "tries": 1
+    }
+  ]
+}
