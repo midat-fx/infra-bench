@@ -3,7 +3,8 @@
 
   bench.py validate [ids...]   prove every verifier: broken fails, solution
                                passes, each wrong fix fails for its reason
-  bench.py agent MODEL [ids]   let `claude -p` fix scenarios, then verify
+  bench.py agent [--models haiku sonnet] [ids...]
+                               let `claude -p` fix each scenario, then verify
   bench.py list
 
 A scenario is a directory under scenarios/:
@@ -34,6 +35,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 SCEN = ROOT / "scenarios"
 WORK = ROOT / ".work"
+# Agents work outside the repo, so the reference fixes are not a `ls ..` away.
+# It must still be under $HOME: colima only shares $HOME with containers.
+AGENT_WORK = Path.home() / ".cache" / "infra-bench-agent"
+
+
+def scrub(text: str) -> str:
+    """Keep machine-specific paths out of committed logs."""
+    return text.replace(str(ROOT), "<repo>").replace(str(Path.home()), "~")
 
 
 def sh(cmd, cwd=None, timeout=600, env=None):
@@ -105,7 +114,7 @@ def validate_one(sid: str, run_dir: Path):
         except RuntimeError as e:
             passed, reason, secs, good = False, str(e).splitlines()[0], 0.0, False
         (run_dir / sid).mkdir(parents=True, exist_ok=True)
-        (run_dir / sid / f"{name.replace('/', '-')}.log").write_text("\n".join(log))
+        (run_dir / sid / f"{name.replace('/', '-')}.log").write_text(scrub("\n".join(log)))
         row = dict(scenario=sid, attempt=name, expected="pass" if want_pass else "fail",
                    got="pass" if passed else "fail", reason=reason, expect=expect,
                    ok=good, verify_seconds=secs)
@@ -153,6 +162,98 @@ def cmd_validate(a):
     return 1 if bad else 0
 
 
+PROMPT = """You are the on-call infrastructure engineer. Fix the problem below by
+editing the files in the current directory.
+
+{task}
+Environment:
+- `kubectl` is connected to the live kind cluster{k8s_note}.
+- `terraform` runs against LocalStack, a local AWS emulator; `aws` queries it.
+- Work only inside the current directory. Stop when the fix is done; a
+  verifier then checks the result.
+"""
+
+WRAPPERS = {
+    # The cwd is mirrored into the node, so `kubectl apply -f file.yaml` works.
+    "kubectl": 'source "{root}/lib/env.sh"\n'
+               'docker exec "$NODE" mkdir -p "$PWD" && docker cp -q "$PWD/." "$NODE:$PWD"\n'
+               'exec docker exec -i -w "$PWD" -e KUBECONFIG=/etc/kubernetes/admin.conf "$NODE" kubectl "$@"\n',
+    "terraform": 'source "{root}/lib/tf.sh"\ntf "$PWD" "$@"\n',
+    "aws": 'source "{root}/lib/env.sh"\nexec docker exec -i "$LOCALSTACK" awslocal "$@"\n',
+}
+
+ALLOWED = ("Read Edit Write Glob Grep Bash(kubectl:*) Bash(terraform:*) Bash(aws:*) "
+           "Bash(ls:*) Bash(cat:*) Bash(grep:*) Bash(diff:*) Bash(echo:*)")
+
+
+def agent_one(sid: str, model: str, run_dir: Path, max_turns: int):
+    ws = AGENT_WORK / run_dir.name / model / sid
+    bindir = AGENT_WORK / run_dir.name / model / f"{sid}.bin"
+    log = []
+    prepare(sid, ws, log)
+    if sid.startswith("k8s-"):  # the broken state is live before the agent looks
+        rc, out = sh(["bash", "-c", f'source "{ROOT}/lib/k8s.sh"; k8s_deploy {sid} "$1"', "_", str(ws)])
+        log.append(f"$ k8s_deploy (broken)\n{out}")
+    bindir.mkdir(parents=True, exist_ok=True)
+    for name, body in WRAPPERS.items():
+        (bindir / name).write_text("#!/usr/bin/env bash\n" + body.format(root=ROOT))
+        (bindir / name).chmod(0o755)
+    task = (SCEN / sid / "task.md").read_text()
+    prompt = PROMPT.format(task=task, k8s_note=f"; the manifests here are deployed in namespace `{sid}`"
+                           if sid.startswith("k8s-") else "")
+    cmd = ["claude", "-p", prompt, "--model", model, "--output-format", "stream-json", "--verbose",
+           "--max-turns", str(max_turns), "--setting-sources", "project", "--strict-mcp-config",
+           "--disable-slash-commands", "--no-session-persistence", "--allowedTools", ALLOWED]
+    t0 = time.monotonic()
+    rc, out = sh(cmd, cwd=ws, timeout=1200, env={**os.environ, "PATH": f"{bindir}:{os.environ['PATH']}"})
+    agent_secs = round(time.monotonic() - t0, 1)
+    events = []
+    for line in out.splitlines():
+        try:
+            events.append(json.loads(line))
+        except json.JSONDecodeError:
+            pass
+    init = next((e for e in events if e.get("type") == "system" and e.get("subtype") == "init"), {})
+    res = next((e for e in reversed(events) if e.get("type") == "result"), {})
+    tool_inputs = json.dumps([c.get("input") for e in events if e.get("type") == "assistant"
+                              for c in e.get("message", {}).get("content", []) if c.get("type") == "tool_use"])
+    peeked = str(SCEN) in tool_inputs or "/scenarios/" in tool_inputs
+    passed, vout, vsecs = verify(sid, ws, log)
+    fail_lines = [l for l in vout.splitlines() if l.startswith("FAIL:")]
+    out_dir = run_dir / model
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / f"{sid}.jsonl").write_text(scrub(out))
+    (out_dir / f"{sid}.verify.log").write_text(scrub("\n".join(log)))
+    _, patch = sh(["diff", "-ruN", "-x", ".*", "-x", "terraform.tfstate*", str(SCEN / sid / "workspace"), str(ws)])
+    (out_dir / f"{sid}.diff").write_text(scrub(patch))
+    row = dict(scenario=sid, model=model, resolved_model=init.get("model"), passed=passed,
+               reason=fail_lines[0] if fail_lines else "", turns=res.get("num_turns"),
+               cost_usd=res.get("total_cost_usd"), agent_seconds=agent_secs, verify_seconds=vsecs,
+               agent_error=res.get("subtype") if res.get("is_error") or rc else None, peeked=peeked)
+    print(f"{'PASS' if passed else 'fail'} {model:8} {sid:28} turns={row['turns']} "
+          f"${row['cost_usd'] or 0:.3f} {agent_secs:6.1f}s {row['reason']}", flush=True)
+    shutil.rmtree(bindir, ignore_errors=True)
+    shutil.rmtree(ws, ignore_errors=True)
+    return row
+
+
+def cmd_agent(a):
+    ids = scenario_ids(a.ids)
+    run_dir = ROOT / "results" / f"agent-{stamp()}"
+    run_dir.mkdir(parents=True)
+    jobs = [(m, s) for m in a.models for s in ids]
+    with ThreadPoolExecutor(a.jobs) as ex:
+        rows = list(ex.map(lambda ms: agent_one(ms[1], ms[0], run_dir, a.max_turns), jobs))
+    summary = dict(kind="agent", commit=git_rev(), started=run_dir.name.split("-", 1)[1],
+                   max_turns=a.max_turns, runs=len(rows), rows=rows)
+    for m in a.models:
+        mr = [r for r in rows if r["model"] == m]
+        summary[f"pass_{m}"] = f"{sum(r['passed'] for r in mr)}/{len(mr)}"
+    (run_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    print({k: v for k, v in summary.items() if k.startswith("pass_")}, "->", run_dir.relative_to(ROOT))
+    return 0
+
+
 def cmd_list(a):
     for sid in scenario_ids([]):
         wrong = len(list((SCEN / sid / "wrong").iterdir())) if (SCEN / sid / "wrong").exists() else 0
@@ -167,6 +268,12 @@ def main():
     v.add_argument("ids", nargs="*")
     v.add_argument("-j", "--jobs", type=int, default=int(os.environ.get("JOBS", 3)))
     v.set_defaults(fn=cmd_validate)
+    g = sub.add_parser("agent")
+    g.add_argument("--models", nargs="+", default=["haiku"])
+    g.add_argument("ids", nargs="*")
+    g.add_argument("-j", "--jobs", type=int, default=2)
+    g.add_argument("--max-turns", type=int, default=40)
+    g.set_defaults(fn=cmd_agent)
     sub.add_parser("list").set_defaults(fn=cmd_list)
     a = ap.parse_args()
     sys.exit(a.fn(a))
