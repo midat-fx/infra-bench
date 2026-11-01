@@ -1,0 +1,20 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/tf-open-ssh/workspace/main.tf ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/tf-open-ssh/main.tf
+--- <repo>/scenarios/tf-open-ssh/workspace/main.tf	2026-11-01 09:22:07
++++ ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/tf-open-ssh/main.tf	2026-11-01 09:47:01
+@@ -28,15 +28,7 @@
+   ip_protocol       = "tcp"
+   from_port         = 22
+   to_port           = 22
+-  cidr_ipv4         = "0.0.0.0/0"
+-}
+-
+-resource "aws_vpc_security_group_ingress_rule" "ssh_v6" {
+-  security_group_id = aws_security_group.web.id
+-  ip_protocol       = "tcp"
+-  from_port         = 22
+-  to_port           = 22
+-  cidr_ipv6         = "::/0"
++  cidr_ipv4         = "198.51.100.0/24"
+ }
+ 
+ resource "aws_vpc_security_group_egress_rule" "all" {

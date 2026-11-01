@@ -1,0 +1,12 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/k8s-service-selector/workspace/web.yaml ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/k8s-service-selector/web.yaml
+--- <repo>/scenarios/k8s-service-selector/workspace/web.yaml	2026-11-01 08:52:58
++++ ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/k8s-service-selector/web.yaml	2026-11-01 09:44:14
+@@ -47,7 +47,7 @@
+   name: shop-public
+   namespace: k8s-service-selector
+ spec:
+-  selector: {app: shop, component: web, version: v1}
++  selector: {app: shop, component: web}
+   ports:
+     - port: 80
+       targetPort: 8080

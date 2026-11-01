@@ -1,0 +1,11 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/k8s-networkpolicy/workspace/netpol.yaml ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/k8s-networkpolicy/netpol.yaml
+--- <repo>/scenarios/k8s-networkpolicy/workspace/netpol.yaml	2026-11-01 08:50:05
++++ ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/k8s-networkpolicy/netpol.yaml	2026-11-01 09:41:21
+@@ -19,6 +19,6 @@
+   ingress:
+     - from:
+         - podSelector:
+-            matchLabels: {role: frontend}
++            matchLabels: {app: frontend}
+       ports:
+         - port: 80

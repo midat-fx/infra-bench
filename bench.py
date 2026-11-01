@@ -3,7 +3,7 @@
 
   bench.py validate [ids...]   prove every verifier: broken fails, solution
                                passes, each wrong fix fails for its reason
-  bench.py agent [--models haiku sonnet] [ids...]
+  bench.py agent [-m MODEL ...] [ids...]
                                let `claude -p` fix each scenario, then verify
   bench.py list
 
@@ -22,8 +22,10 @@ command a fixer would run, e.g. `terraform apply` or `terraform state rm`.
 """
 
 import argparse
+import getpass
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -41,8 +43,10 @@ AGENT_WORK = Path.home() / ".cache" / "infra-bench-agent"
 
 
 def scrub(text: str) -> str:
-    """Keep machine-specific paths out of committed logs."""
-    return text.replace(str(ROOT), "<repo>").replace(str(Path.home()), "~")
+    """Keep machine-specific paths and the local user name out of committed logs."""
+    home = str(Path.home())
+    text = text.replace(str(ROOT), "<repo>").replace(home, "~").replace(home.replace("/", "-"), "-HOME")
+    return re.sub(rf"\b{re.escape(getpass.getuser())}\b", "user", text)
 
 
 def sh(cmd, cwd=None, timeout=600, env=None):
@@ -203,7 +207,8 @@ def agent_one(sid: str, model: str, run_dir: Path, max_turns: int):
                            if sid.startswith("k8s-") else "")
     cmd = ["claude", "-p", prompt, "--model", model, "--output-format", "stream-json", "--verbose",
            "--max-turns", str(max_turns), "--setting-sources", "project", "--strict-mcp-config",
-           "--disable-slash-commands", "--no-session-persistence", "--allowedTools", ALLOWED]
+           "--disable-slash-commands", "--no-session-persistence",
+           "--tools", "Bash,Read,Edit,Write,Glob,Grep", "--allowedTools", ALLOWED]
     t0 = time.monotonic()
     rc, out = sh(cmd, cwd=ws, timeout=1200, env={**os.environ, "PATH": f"{bindir}:{os.environ['PATH']}"})
     agent_secs = round(time.monotonic() - t0, 1)
@@ -238,6 +243,7 @@ def agent_one(sid: str, model: str, run_dir: Path, max_turns: int):
 
 
 def cmd_agent(a):
+    a.models = a.models or ["claude-haiku-5-5"]
     ids = scenario_ids(a.ids)
     run_dir = ROOT / "results" / f"agent-{stamp()}"
     run_dir.mkdir(parents=True)
@@ -269,7 +275,9 @@ def main():
     v.add_argument("-j", "--jobs", type=int, default=int(os.environ.get("JOBS", 3)))
     v.set_defaults(fn=cmd_validate)
     g = sub.add_parser("agent")
-    g.add_argument("--models", nargs="+", default=["haiku"])
+    # Full model IDs: CLI aliases like "haiku" may resolve to an older model.
+    g.add_argument("-m", "--model", dest="models", action="append",
+                   help="repeatable; default claude-haiku-5-5")
     g.add_argument("ids", nargs="*")
     g.add_argument("-j", "--jobs", type=int, default=2)
     g.add_argument("--max-turns", type=int, default=40)

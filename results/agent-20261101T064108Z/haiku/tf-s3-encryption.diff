@@ -1,0 +1,29 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/tf-s3-encryption/workspace/main.tf ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/tf-s3-encryption/main.tf
+--- <repo>/scenarios/tf-s3-encryption/workspace/main.tf	2026-11-01 08:55:31
++++ ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/tf-s3-encryption/main.tf	2026-11-01 09:49:56
+@@ -9,6 +9,25 @@
+   }
+ }
+ 
++resource "aws_s3_bucket_server_side_encryption_configuration" "invoices" {
++  bucket = aws_s3_bucket.invoices.id
++
++  rule {
++    apply_server_side_encryption_by_default {
++      sse_algorithm = "AES256"
++    }
++  }
++}
++
++resource "aws_s3_bucket_public_access_block" "invoices" {
++  bucket = aws_s3_bucket.invoices.id
++
++  block_public_acls       = true
++  block_public_policy     = true
++  ignore_public_acls      = true
++  restrict_public_buckets = true
++}
++
+ output "bucket" {
+   value = aws_s3_bucket.invoices.id
+ }

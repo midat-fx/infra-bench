@@ -71,5 +71,5 @@ make test KEEP=1            # leave the cluster up afterwards
 make validate IDS="tf-open-ssh k8s-pod-security"   # against a running cluster
 make list
 make purge                  # also delete the pinned images (~3 GB)
-python3 bench.py agent --models haiku sonnet       # agent runs, needs `claude`
+python3 bench.py agent -m claude-haiku-5-5 -m claude-sonnet-5-5   # agent runs, needs `claude`
 ```

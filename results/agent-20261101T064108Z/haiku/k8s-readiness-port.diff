@@ -1,0 +1,12 @@
+diff -ruN -x .* -x terraform.tfstate* <repo>/scenarios/k8s-readiness-port/workspace/web.yaml ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/k8s-readiness-port/web.yaml
+--- <repo>/scenarios/k8s-readiness-port/workspace/web.yaml	2026-11-01 08:48:01
++++ ~/.cache/infra-bench-agent/agent-20261101T064108Z/haiku/k8s-readiness-port/web.yaml	2026-11-01 09:43:22
+@@ -28,7 +28,7 @@
+           readinessProbe:
+             httpGet:
+               path: /healthz
+-              port: 80
++              port: 8080
+             periodSeconds: 2
+             failureThreshold: 2
+ ---
