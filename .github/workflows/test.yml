@@ -1,0 +1,17 @@
+# Manual only: a full run takes ~15 minutes of runner time.
+name: make test
+on:
+  workflow_dispatch:
+
+jobs:
+  make-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - run: make test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: results
+          path: results/validate-*
