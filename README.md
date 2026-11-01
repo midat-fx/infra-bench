@@ -72,6 +72,11 @@ pass the broken bucket, and what is deliberately left out.
 | same machine, after the timeout fix | `c175d29` | **66/66** (15 must-pass, 51 must-fail) | 770.5 s | `results/validate-20261101T082833Z/` |
 | GitHub Actions `ubuntu-24.04`, clean checkout | `c175d29` | 65/66 | 834.4 s | `results/ci-41288960042/` |
 | GitHub Actions, after the OOM reason fix | `58258e0` | **66/66** | 808.9 s | `results/ci-41290109989/` |
+| Mac, after the trace scrub and history rewrite | `ac56f04` | **66/66** | 610.4 s | `results/validate-20261101T090854Z/` |
+
+Commit hashes up to `58258e0` predate a history rewrite that only removed
+account rate-limit status lines from the agent traces; code and results are
+unchanged. `results/commit-map-20261101.txt` maps them to the current SHAs.
 
 The CI rows' `summary.json` say `-dirty`: the warm-up `terraform init` output
 in `lib/tf-warm/` had been committed by mistake, and on the amd64 runner init
@@ -100,7 +105,7 @@ max 40 turns, the broken system live, verified with the same `check.sh`:
 | Model | Solved as graded | After regrade | Median turns | Median agent time | Total cost |
 |---|---|---|---|---|---|
 | `claude-haiku-4-5-20251001` | 11/12 | 11/12 | 8 | 28.3 s | $0.76 |
-| `claude-haiku-5-5` | 11/12 | **12/12** | 7 | 29.3 s | $3.58 |
+| `claude-haiku-5-5` | 11/12 | **12/12** | 7 | 29.25 s | $3.58 |
 | `claude-sonnet-5-5` | 12/12 | 12/12 | 6 | 23.3 s | $1.25 |
 
 Raw: `results/agent-20261101T064108Z/` (Haiku 4.5) and

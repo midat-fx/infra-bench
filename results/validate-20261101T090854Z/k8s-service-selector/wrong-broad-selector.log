@@ -1,0 +1,5 @@
+$ check.sh
+deployment.apps/web created
+deployment.apps/admin created
+service/shop-public created
+FAIL: admin pod behind shop-public

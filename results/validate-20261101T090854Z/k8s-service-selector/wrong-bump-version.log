@@ -1,0 +1,5 @@
+$ check.sh
+deployment.apps/web created
+deployment.apps/admin created
+service/shop-public created
+FAIL: selector pins a version label (app=shop,component=web,version=v2): breaks on the next rollout

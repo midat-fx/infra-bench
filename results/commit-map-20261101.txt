@@ -1,0 +1,16 @@
+# old -> new short SHAs after the 2026-11-01 history rewrite (only account rate-limit lines were removed from agent traces)
+58258e0 95f630a OOM verifier names the termination reason on restarts (CI race); repo-level .terraform ignores; first CI result; README results
+62c3a98 e1144cd README: exact medians, no unmeasured sizes, wording
+6c2d5d1 f59961b Regrade both agent runs with fixed verifiers; design notes on alt fixes and the Rego null bug
+6e3fdb8 6e3fdb8 Kubernetes scenarios: NetworkPolicy, RBAC, Pod Security, Service selector
+73ea2de 73ea2de Runner, kind/LocalStack lifecycle, first two Kubernetes scenarios
+7e36ec9 ac56f04 Agent traces: drop account rate-limit events before writing
+8462feb 8462feb Terraform scenarios: open SSH, hardcoded secret; Makefile
+a4d1fb1 b7fed54 Second CI run 66/66; untrack generated lib/tf-warm/.terraform files
+a68616b a68616b Agent runner, README and design notes
+a9240c1 fd8004c CI: manual make test on a clean Ubuntu runner
+c175d29 20faf2b Record 65/66 run (namespace delete timed out under load); 300s delete timeout, retry once on infra errors, never count them as rejections
+e6990ff f409833 Fix Rego null lists (false accept in tf-open-ssh, false reject in tf-module-cycle); alt fixes must pass; regrade command; Haiku/Sonnet 5.5 agent run
+ea4c79c ea4c79c Terraform scenarios on LocalStack: S3 encryption, IAM least privilege
+f321e50 45548c2 Haiku 4.5 agent run (12 scenarios, 11 solved); scrub user name from logs; restrict agent tools
+f3c38ee f3c38ee Terraform scenarios: state drift reconciliation, module dependency cycle
