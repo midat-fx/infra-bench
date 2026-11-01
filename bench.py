@@ -16,8 +16,8 @@ A scenario is a directory under scenarios/:
   setup.sh     optional: prepares live state (drift scenarios)
   check.sh     the verifier: exit 0 = accepted
 
-Overlay dirs may hold `_delete` (paths to remove) and `_post.sh` (run in the
-workspace after copying, e.g. a `terraform apply` the fixer would run).
+An overlay dir may hold `_post.sh`, run in the workspace after copying: the
+command a fixer would run, e.g. `terraform apply` or `terraform state rm`.
 """
 
 import argparse
@@ -53,10 +53,6 @@ def overlay(src: Path, ws: Path):
             continue
         (ws / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(f, ws / rel)
-    if (src / "_delete").exists():
-        for line in (src / "_delete").read_text().split():
-            p = ws / line
-            shutil.rmtree(p) if p.is_dir() else p.unlink(missing_ok=True)
 
 
 def prepare(sid: str, ws: Path, log: list):
