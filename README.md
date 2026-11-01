@@ -6,8 +6,8 @@ cluster; Terraform scenarios apply against [LocalStack](https://github.com/local
 No cloud account, no credentials.
 
 The point is the verifiers. Each scenario ships a reference fix, sometimes an
-equivalent fix in another style, and two to four **plausible wrong fixes**: the shortcuts a tired engineer or a coding agent
-takes (delete the probe, remove the memory limit, relax the namespace policy,
+equivalent fix in another style, and two to four **plausible wrong fixes**:
+the shortcuts a tired engineer or a coding agent takes (delete the probe, remove the memory limit, relax the namespace policy,
 `ignore_changes` the drift away, `s3:*` instead of `*`). `make test` proves on
 every run that each verifier rejects the broken setup, accepts the correct
 fixes, and rejects every wrong fix *for the reason it was written to catch*:
@@ -32,7 +32,7 @@ installed.
 | `k8s-networkpolicy` | allow rule selects a label no pod has, and the Service port instead of the pod port | allow the whole namespace · drop default-deny · right label, wrong port |
 | `k8s-rbac-least-privilege` | log shipper bound to `cluster-admin` | Role on `resources: ["*"]` · ClusterRoleBinding · built-in `view` · no `pods/log` |
 | `k8s-pod-security` | Deployment rejected by PSA `restricted` | relabel namespace to `baseline` · `runAsNonRoot` only · `runAsNonRoot` on a root image |
-| `k8s-service-selector` | Service selector pins `version: v1` after a v2 rollout | `app: shop` (catches admin pods) · `version: v2` · pin the new version |
+| `k8s-service-selector` | Service selector pins `version: v1` after a v2 rollout | `app: shop` or `app: shop, version: v2` (both catch the admin pods) · pin the new version |
 | `tf-s3-encryption` | bucket without default encryption or public access block | encrypt a different bucket · 3 of 4 block settings · `acl = private` |
 | `tf-iam-least-privilege` | task role with `Action: *`, `Resource: *` | `s3:*` · right actions on `Resource: *` · forget `sqs:SendMessage` · `NotAction` |
 | `tf-state-drift` | console change to an SQS queue, plan wants to revert it | `terraform apply` the old code · `ignore_changes` · `terraform state rm` |
@@ -83,7 +83,7 @@ load a namespace took longer than the then 120 s delete timeout, and the
 attempt ended with no verdict. Since then the timeout is 300 s, an attempt
 with no verdict (or a `FAIL: infra:` one) is retried once, and an infra
 failure never counts as a correct rejection. Median verifier time per attempt
-in the 66/66 run: 14.5 s Kubernetes, 27.3 s Terraform (`verify_seconds` in
+in the 66/66 run: 14.25 s Kubernetes, 27.0 s Terraform (`verify_seconds` in
 `summary.json`).
 
 The first CI run's miss was a reason mismatch, not a false verdict:
@@ -133,6 +133,6 @@ model ranking.
 make test KEEP=1            # leave the cluster up afterwards
 make validate IDS="tf-open-ssh k8s-pod-security"   # against a running cluster
 make list
-make purge                  # also delete the pinned images (~3 GB)
+make purge                  # also delete the pinned images
 python3 bench.py agent -m claude-haiku-5-5 -m claude-sonnet-5-5   # agent runs, needs `claude`
 ```

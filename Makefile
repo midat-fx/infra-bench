@@ -21,6 +21,6 @@ validate:
 list:
 	@python3 bench.py list
 
-# Remove cluster, LocalStack and every pinned image (frees ~3 GB).
+# Remove cluster, LocalStack, every pinned image and the provider cache.
 purge:
 	@PURGE=1 bash lib/cluster.sh down
