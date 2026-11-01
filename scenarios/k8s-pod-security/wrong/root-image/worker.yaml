@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thumbnailer
+  namespace: k8s-pod-security
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: thumbnailer}
+  template:
+    metadata:
+      labels: {app: thumbnailer}
+    spec:
+      terminationGracePeriodSeconds: 1
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: busybox:1.37.0
+          command: ["sh", "-c", "touch /tmp/ready && exec sleep infinity"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            exec:
+              command: ["test", "-f", "/tmp/ready"]
+            periodSeconds: 2
