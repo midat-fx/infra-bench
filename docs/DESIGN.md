@@ -139,6 +139,29 @@ inline role policy). A verifier that only understands the style of the
 reference fix rejects correct alternatives, which is its own kind of false
 result.
 
+`aws_iam_policy_document` is the most common way to write IAM in Terraform, so
+`tf-iam-least-privilege` has an alt in that style. The policy still reads
+`aws_iam_policy.values.policy`: in applied state that is the rendered JSON, so
+nothing depends on how it was written. I do not police the document's own
+`statement` blocks. A document grants nothing until a policy resource uses it,
+and at that point the rendered JSON is checked, while an `aws_iam_policy` with
+a wildcard is a real IAM object even when unattached, so that one does count.
+`wrong/document-resource-star` shows the rendered JSON really is what gets read.
+
+Writing that alt exposed a false accept in the same policy. `one()` left
+`bucket` undefined whenever the state did not hold exactly one bucket, and in
+Rego an undefined value makes a rule body produce nothing rather than deny. So
+a second bucket switched off the wildcard-resource and required-permission
+rules, and `Resource: "*"` passed without a message. A separate rule now denies
+when the count is not one, and `one()` ignores data sources, which share type
+names with the resources they read.
+Output: `results/iam-one-fail-open-20261102/`.
+
+Known gap, not fixed yet: attaching a policy that is not defined in the
+configuration, such as AWS-managed `AdministratorAccess` by ARN, still passes
+next to a correct least-privilege policy. The policy cannot read a document it
+does not have, so the fix is to reject such attachments outright.
+
 Resource names use `name_prefix` / `bucket_prefix`, so attempts never collide
 on LocalStack and no attempt has to destroy what the previous one created.
 

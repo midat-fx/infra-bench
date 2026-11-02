@@ -8,10 +8,23 @@ resources contains r if {
 	some r in value.resources
 }
 
+# Data sources share type names with the resources they read, so
+# data "aws_s3_bucket" next to the bucket is not a second bucket.
+managed(t) := [r | some r in resources; r.type == t; object.get(r, "mode", "managed") == "managed"]
+
 one(t) := r if {
-	rs := [r | some r in resources; r.type == t]
+	rs := managed(t)
 	count(rs) == 1
 	r := rs[0]
+}
+
+# Without exactly one of each, role, bucket or queue is undefined and every
+# rule built on it silently stops firing, so this has to deny by itself.
+deny contains msg if {
+	some t in ["aws_iam_role", "aws_s3_bucket", "aws_sqs_queue"]
+	n := count(managed(t))
+	n != 1
+	msg := sprintf("expected exactly one %s, found %d", [t, n])
 }
 
 role := one("aws_iam_role")

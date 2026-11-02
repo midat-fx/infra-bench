@@ -58,3 +58,38 @@ test_unattached_policy_does_not_count if {
 	some msg in main.deny with input as unattached
 	startswith(msg, "role is missing")
 }
+
+# terraform show -json lists data sources in the same resources array.
+document(id, statements) := {
+	"mode": "data",
+	"type": "aws_iam_policy_document",
+	"name": id,
+	"values": {
+		"json": json.marshal({"Version": "2012-10-17", "Statement": statements}),
+		"statement": statements,
+	},
+}
+
+with_extra(extra) := {"values": {"root_module": {"resources": array.concat(state(good_statements).values.root_module.resources, extra)}}}
+
+test_policy_document_rendered_json_passes if {
+	count(main.deny) == 0 with input as with_extra([document("exporter", good_statements)])
+}
+
+# A document grants nothing until a policy resource uses it, and then the
+# rendered JSON is read from that resource.
+test_unused_policy_document_is_not_policed if {
+	count(main.deny) == 0 with input as with_extra([document("draft", [{"Effect": "Allow", "Action": "*", "Resource": "*"}])])
+}
+
+# Data sources share type names with the resources they read.
+test_data_source_of_same_type_is_not_a_second_bucket if {
+	count(main.deny) == 0 with input as with_extra([{"mode": "data", "type": "aws_s3_bucket", "values": {"arn": bucket_arn}}])
+}
+
+# A second bucket used to leave `bucket` undefined, which switched off the
+# rules built on it: Resource "*" passed with no message at all.
+test_second_bucket_is_denied_not_ignored if {
+	wide := {"values": {"root_module": {"resources": array.concat(state([{"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject"], "Resource": "*"}, good_statements[1]]).values.root_module.resources, [{"type": "aws_s3_bucket", "values": {"arn": "arn:aws:s3:::other"}}])}}}
+	main.deny["expected exactly one aws_s3_bucket, found 2"] with input as wide
+}

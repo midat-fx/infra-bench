@@ -1,0 +1,21 @@
+{
+  "kind": "regrade",
+  "commit": "88bca7a-dirty",
+  "at": "20261102T201343Z",
+  "rows": [
+    {
+      "scenario": "tf-iam-least-privilege",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-iam-least-privilege",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    }
+  ]
+}
