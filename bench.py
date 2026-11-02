@@ -291,6 +291,14 @@ def cmd_agent(a):
     return 0
 
 
+def workspace_patch(saved: str, sid: str) -> str:
+    """A saved agent diff, with headers rewritten from scrubbed absolute paths
+    (`<repo>/scenarios/<sid>/workspace/f`, `~/.cache/.../<sid>/f`) to `f`."""
+    patch = re.sub(r"^(---|\+\+\+) \S+?/" + re.escape(sid) + r"/(?:workspace/)?(\S+)",
+                   r"\1 \2", saved, flags=re.M)
+    return "\n".join(l for l in patch.splitlines() if not l.startswith("diff ")) + "\n"
+
+
 def cmd_regrade(a):
     """Re-run today's verifiers on a past agent run, rebuilding each workspace
     from the saved diff. Drift needs the live state the agent left, so it is
@@ -305,11 +313,7 @@ def cmd_regrade(a):
         ws = WORK / f"regrade-{model}-{sid}"
         log = []
         prepare(sid, ws, log)
-        patch = (run_dir / model / f"{sid}.diff").read_text()
-        # Headers point at scrubbed absolute paths; rewrite them to ws-relative.
-        patch = re.sub(r"^(---|\+\+\+) \S+?/" + re.escape(sid) + r"/(?:workspace/)?(\S+)",
-                       r"\1 \2", patch, flags=re.M)
-        patch = "\n".join(l for l in patch.splitlines() if not l.startswith("diff ")) + "\n"
+        patch = workspace_patch((run_dir / model / f"{sid}.diff").read_text(), sid)
         p = subprocess.run(["patch", "-p0", "-s"], cwd=ws, input=patch, text=True,
                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if p.returncode:
