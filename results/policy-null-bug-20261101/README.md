@@ -10,7 +10,7 @@ the rule never entered the normalised rule set. The same pattern in
 from 0.0.0.0/0 via `aws_security_group_rule`), policy before and after commit
 "Fix Rego null lists":
 
-    == old policy (ssh.rego at a9240c1)
+    == old policy (ssh.rego at d0b4202, recorded then as a9240c1)
     ok: policy
     == new policy
     FAIL: port 22 reachable via tcp/22-22 from 0.0.0.0/0

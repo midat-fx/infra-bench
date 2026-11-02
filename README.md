@@ -73,15 +73,17 @@ pass the broken bucket, and what is deliberately left out.
 
 | Run | Commit | Verdicts correct | Wall time | Raw |
 |---|---|---|---|---|
-| macOS arm64, colima 4 CPU / 6 GB shared with other jobs, `-j 3` | `6c2d5d1` | 65/66 | 1290.4 s | `results/validate-20261101T080538Z/` |
-| same machine, after the timeout fix | `c175d29` | **66/66** (15 must-pass, 51 must-fail) | 770.5 s | `results/validate-20261101T082833Z/` |
-| GitHub Actions `ubuntu-24.04`, clean checkout | `c175d29` | 65/66 | 834.4 s | `results/ci-41288960042/` |
-| GitHub Actions, after the OOM reason fix | `58258e0` | **66/66** | 808.9 s | `results/ci-41290109989/` |
-| Mac, after the trace scrub and history rewrite | `ac56f04` | **66/66** | 610.4 s | `results/validate-20261101T090854Z/` |
+| macOS arm64, colima 4 CPU / 6 GB shared with other jobs, `-j 3` | `0f5e81a` | 65/66 | 1290.4 s | `results/validate-20261101T080538Z/` |
+| same machine, after the timeout fix | `04216b9` | **66/66** (15 must-pass, 51 must-fail) | 770.5 s | `results/validate-20261101T082833Z/` |
+| GitHub Actions `ubuntu-24.04`, clean checkout | `04216b9` | 65/66 | 834.4 s | `results/ci-41288960042/` |
+| GitHub Actions, after the OOM reason fix | `a36667b` | **66/66** | 808.9 s | `results/ci-41290109989/` |
+| Mac, after the trace scrub and history rewrite | `e3e223f` | **66/66** | 610.4 s | `results/validate-20261101T090854Z/` |
 
-Commit hashes up to `58258e0` predate a history rewrite that only removed
-account rate-limit status lines from the agent traces; code and results are
-unchanged. `results/commit-map-20261101.txt` maps them to the current SHAs.
+History was rewritten twice: on 2026-11-01 to remove account rate-limit status
+lines from the agent traces (code and results unchanged), and on 2026-11-02 to
+change the author identity (trees identical). The table shows current hashes;
+each `summary.json` keeps the hash recorded at run time, and
+`results/commit-map.txt` maps one to the other.
 
 The CI rows' `summary.json` say `-dirty`: the warm-up `terraform init` output
 in `lib/tf-warm/` had been committed by mistake, and on the amd64 runner init

@@ -1,0 +1,19 @@
+# SHAs through both history rewrites. `summary.json` files keep the SHA recorded at run time.
+# 2026-11-01 removed account rate-limit lines from agent traces; 2026-11-02 changed only the author identity (trees identical).
+# first  after-1st  current  subject
+73ea2de 73ea2de 63d48cf Runner, kind/LocalStack lifecycle, first two Kubernetes scenarios
+6e3fdb8 6e3fdb8 019d5d3 Kubernetes scenarios: NetworkPolicy, RBAC, Pod Security, Service selector
+ea4c79c ea4c79c dd27048 Terraform scenarios on LocalStack: S3 encryption, IAM least privilege
+f3c38ee f3c38ee b12627c Terraform scenarios: state drift reconciliation, module dependency cycle
+8462feb 8462feb 6005bab Terraform scenarios: open SSH, hardcoded secret; Makefile
+a68616b a68616b ec3483a Agent runner, README and design notes
+f321e50 45548c2 e2e2ccc Haiku 4.5 agent run (12 scenarios, 11 solved); scrub user name from logs; restrict agent tools
+a9240c1 fd8004c d0b4202 CI: manual make test on a clean Ubuntu runner
+e6990ff f409833 8bf7bce Fix Rego null lists (false accept in tf-open-ssh, false reject in tf-module-cycle); alt fixes must pass; regrade command; Haiku/Sonnet 5.5 agent run
+6c2d5d1 f59961b 0f5e81a Regrade both agent runs with fixed verifiers; design notes on alt fixes and the Rego null bug
+c175d29 20faf2b 04216b9 Record 65/66 run (namespace delete timed out under load); 300s delete timeout, retry once on infra errors, never count them as rejections
+58258e0 95f630a a36667b OOM verifier names the termination reason on restarts (CI race); repo-level .terraform ignores; first CI result; README results
+a4d1fb1 b7fed54 56ede5c Second CI run 66/66; untrack generated lib/tf-warm/.terraform files
+62c3a98 e1144cd 1acd93a README: exact medians, no unmeasured sizes, wording
+7e36ec9 ac56f04 e3e223f Agent traces: drop account rate-limit events before writing
+- 671cf00 58defbe Post-rewrite make test 66/66; commit map for pre-rewrite SHAs
