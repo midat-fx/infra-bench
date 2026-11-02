@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/report-api created
+FAIL: memory limit 2Gi exceeds 256Mi

@@ -1,0 +1,2 @@
+$ check.sh
+FAIL: bucket aws_s3_bucket.invoices: restrict_public_buckets is not true

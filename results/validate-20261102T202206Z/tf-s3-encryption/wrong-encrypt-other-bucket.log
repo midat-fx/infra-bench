@@ -1,0 +1,4 @@
+$ check.sh
+FAIL: bucket aws_s3_bucket.invoices (invoices-20261102202853233300000001) has no default encryption configured
+FAIL: bucket aws_s3_bucket.logs has no public access block
+FAIL: bucket aws_s3_bucket.logs lost versioning

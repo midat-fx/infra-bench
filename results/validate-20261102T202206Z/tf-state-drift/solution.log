@@ -1,0 +1,4 @@
+$ setup.sh
+
+$ check.sh
+ok: code matches the live queue, plan clean

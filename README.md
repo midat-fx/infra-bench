@@ -6,12 +6,12 @@ cluster; Terraform scenarios apply against [LocalStack](https://github.com/local
 No cloud account, no credentials.
 
 The point is the verifiers. Each scenario ships a reference fix, sometimes an
-equivalent fix in another style, and two to four **plausible wrong fixes**:
+equivalent fix in another style, and two to five **plausible wrong fixes**:
 the shortcuts a tired engineer or a coding agent takes (delete the probe, remove the memory limit, relax the namespace policy,
 `ignore_changes` the drift away, `s3:*` instead of `*`). `make test` proves on
 every run that each verifier rejects the broken setup, accepts the correct
 fixes, and rejects every wrong fix *for the reason it was written to catch*:
-12 scenarios, 66 verdicts.
+12 scenarios, 68 verdicts.
 
 ```bash
 make test
@@ -34,7 +34,7 @@ installed.
 | `k8s-pod-security` | Deployment rejected by PSA `restricted` | relabel namespace to `baseline` · `runAsNonRoot` only · `runAsNonRoot` on a root image |
 | `k8s-service-selector` | Service selector pins `version: v1` after a v2 rollout | `app: shop` or `app: shop, version: v2` (both catch the admin pods) · pin the new version |
 | `tf-s3-encryption` | bucket without default encryption or public access block | encrypt a different bucket · 3 of 4 block settings · `acl = private` |
-| `tf-iam-least-privilege` | task role with `Action: *`, `Resource: *` | `s3:*` · right actions on `Resource: *` · forget `sqs:SendMessage` · `NotAction` |
+| `tf-iam-least-privilege` | task role with `Action: *`, `Resource: *` | `s3:*` · right actions on `Resource: *` · forget `sqs:SendMessage` · `NotAction` · `Resource: *` through `aws_iam_policy_document` |
 | `tf-state-drift` | console change to an SQS queue, plan wants to revert it | `terraform apply` the old code · `ignore_changes` · `terraform state rm` |
 | `tf-module-cycle` | two modules need each other's security group ID: `Error: Cycle` | VPC CIDR rules instead of SG references · drop the egress rule |
 | `tf-open-ssh` | SSH from `0.0.0.0/0` and `::/0` | close IPv4 only · `0-65535` rule that still covers 22 · drop HTTPS too · open SSH re-added as `aws_security_group_rule` |
@@ -78,6 +78,7 @@ pass the broken bucket, and what is deliberately left out.
 | GitHub Actions `ubuntu-24.04`, clean checkout | `04216b9` | 65/66 | 834.4 s | `results/ci-41288960042/` |
 | GitHub Actions, after the OOM reason fix | `a36667b` | **66/66** | 808.9 s | `results/ci-41290109989/` |
 | Mac, after the trace scrub and history rewrite | `e3e223f` | **66/66** | 610.4 s | `results/validate-20261101T090854Z/` |
+| Mac, fresh clone, `aws_iam_policy_document` alt and wrong fix added | `672bde7` | **68/68** (16 must-pass, 52 must-fail) | 673.7 s | `results/validate-20261102T202206Z/` |
 
 History was rewritten twice: on 2026-11-01 to remove account rate-limit status
 lines from the agent traces (code and results unchanged), and on 2026-11-02 to

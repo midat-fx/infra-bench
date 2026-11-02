@@ -1,0 +1,8 @@
+$ setup.sh
+
+$ _post.sh
+Removed aws_sqs_queue.jobs
+Successfully removed 1 resource instance(s).
+
+$ check.sh
+FAIL: aws_sqs_queue.jobs is no longer in state
