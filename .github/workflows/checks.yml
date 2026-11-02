@@ -1,0 +1,27 @@
+# Fast checks on every push and pull request: no cluster, about a minute.
+# The full kind + LocalStack suite is the manual "make test" workflow.
+name: checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # leak-check scans every commit, not just the tip
+      # Rego unit tests, bash -n, runner self-test, leak/authorship check.
+      - run: make check
+      - name: shellcheck (errors only)
+        run: shellcheck -S error lib/*.sh scenarios/*/*.sh scenarios/*/wrong/*/_post.sh

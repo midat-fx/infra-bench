@@ -140,6 +140,7 @@ model ranking.
 ## Other targets
 
 ```bash
+make check                  # no cluster: Rego tests, runner self-test, leak check
 make policy-test            # Rego unit tests only, no cluster
 make test KEEP=1            # leave the cluster up afterwards
 make validate IDS="tf-open-ssh k8s-pod-security"   # against a running cluster

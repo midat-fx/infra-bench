@@ -190,6 +190,26 @@ full ID: the CLI alias `haiku` resolved to Haiku 4.5, not 5.5, which is why the
 first agent run in `results/` is labelled that way. The model actually used is
 taken from the transcript's init event, not from the flag.
 
+## CI and the leak check
+
+Two workflows. `checks` runs on every push and pull request in about a minute:
+`make check` (Rego unit tests, `bash -n`, the runner's self-test in
+`test_bench.py`, the leak check) plus `shellcheck -S error`. `make test` needs
+kind and LocalStack and takes ~15 minutes of runner time, so that workflow is
+manual. Both run with a read-only token and actions pinned to commit SHAs, so a
+moved tag cannot change what runs.
+
+`lib/leak-check.sh` exists because this repo commits agent transcripts, and a
+transcript records more than the agent's work: home-directory paths, the local
+user name, and once the Claude Code account's rate-limit status. The harness
+scrubs those before writing, and the check is the second line. It greps every
+commit, not just the tip (a leak in history is still public), decompresses
+any `.gz` that ever existed (git grep skips binaries), and checks that every
+commit has one author and no attribution trailers. Its own patterns are split
+(`'/Us''ers/'`) so that it never matches itself, and so the repository never
+contains the literal strings it hunts for. I checked it on a throwaway clone
+with one planted leak of each kind; each was reported.
+
 ## What is deliberately not here
 
 - No Helm, operators or multi-node clusters: each adds minutes of start-up
