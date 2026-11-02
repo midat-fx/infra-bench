@@ -205,7 +205,7 @@ user name, and once the Claude Code account's rate-limit status. The harness
 scrubs those before writing, and the check is the second line. It greps every
 commit, not just the tip (a leak in history is still public), decompresses
 any `.gz` that ever existed (git grep skips binaries), and checks that every
-commit has one author and no attribution trailers. Its own patterns are split
+commit has the same single author and committer identity and no attribution trailers. Its own patterns are split
 (`'/Us''ers/'`) so that it never matches itself, and so the repository never
 contains the literal strings it hunts for. I checked it on a throwaway clone
 with one planted leak of each kind; each was reported.

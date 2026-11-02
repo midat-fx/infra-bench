@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # Pre-push and CI guard: nothing personal, secret or account-related in the
-# tree, in any commit, or inside compressed files; one author everywhere.
+# tree, in any commit, or inside compressed files; one identity everywhere.
 # Patterns are split ('a''b') so this file never matches itself.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-AUTHOR='238638256+midat-fx@users.noreply.github.com'
 PATTERNS=(
   '/Us''ers/' '/ho''me/[a-z]'                        # machine paths
   'AKIA[0-9A-Z]{16}' 'gh[pousr]_[A-Za-z0-9]{30,}' 'github''_pat_' 'sk-''ant-'
@@ -32,8 +31,10 @@ while read -r obj path; do
   [ -z "$hits" ] || report "$path ($obj)" <<<"$hits"
 done < <(git rev-list --all --objects | awk 'NF == 2')
 
-hits=$(git log --all --format='%h %ae %ce' | awk -v a="$AUTHOR" '$2 != a || $3 != a')
-[ -z "$hits" ] || report "commits not by $AUTHOR" <<<"$hits"
+# Author and committer of every commit: one identity, whatever it is, so no
+# address is pinned here.
+ids=$(git log --all --format='%an <%ae>%n%cn <%ce>' | sort | uniq -c)
+[ "$(grep -c . <<<"$ids")" = 1 ] || report "more than one author/committer identity" <<<"$ids"
 hits=$(git log --all --format='%h %B' | grep -iE 'co-authored-by|generated (with|by)' || true)
 [ -z "$hits" ] || report "attribution trailers" <<<"$hits"
 
