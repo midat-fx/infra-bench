@@ -157,10 +157,14 @@ when the count is not one, and `one()` ignores data sources, which share type
 names with the resources they read.
 Output: `results/iam-one-fail-open-20261102/`.
 
-Known gap, not fixed yet: attaching a policy that is not defined in the
-configuration, such as AWS-managed `AdministratorAccess` by ARN, still passes
-next to a correct least-privilege policy. The policy cannot read a document it
-does not have, so the fix is to reject such attachments outright.
+The policy did not read every way a policy reaches the role, either. An
+attachment to AWS-managed `AdministratorAccess` by ARN, the same through
+`aws_iam_policy_attachment` or `managed_policy_arns`, and an `inline_policy`
+block on the role all passed next to a correct policy. Now every ARN that
+reaches the role must belong to an `aws_iam_policy` in this configuration,
+because a policy whose document is not in the state cannot be checked, and
+inline blocks are policed like `aws_iam_role_policy`. Probes and state shapes:
+`results/iam-grant-paths-20261103/`.
 
 Resource names use `name_prefix` / `bucket_prefix`, so attempts never collide
 on LocalStack and no attempt has to destroy what the previous one created.

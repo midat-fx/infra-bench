@@ -93,3 +93,40 @@ test_second_bucket_is_denied_not_ignored if {
 	wide := {"values": {"root_module": {"resources": array.concat(state([{"Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject"], "Resource": "*"}, good_statements[1]]).values.root_module.resources, [{"type": "aws_s3_bucket", "values": {"arn": "arn:aws:s3:::other"}}])}}}
 	main.deny["expected exactly one aws_s3_bucket, found 2"] with input as wide
 }
+
+# Other ways a policy reaches the role. Shapes copied from applied state:
+# results/iam-grant-paths-20261103/.
+admin_arn := "arn:aws:iam::aws:policy/AdministratorAccess"
+
+admin_denied(msgs) if msgs[sprintf("role gets %s, a policy not defined in this configuration", [admin_arn])]
+
+test_attachment_of_undefined_policy_is_denied if {
+	admin_denied(main.deny) with input as with_extra([{"mode": "managed", "type": "aws_iam_role_policy_attachment", "values": {"role": "exporter-1", "policy_arn": admin_arn}}])
+}
+
+test_policy_attachment_resource_is_denied if {
+	admin_denied(main.deny) with input as with_extra([{"mode": "managed", "type": "aws_iam_policy_attachment", "values": {"roles": ["exporter-1"], "users": null, "groups": null, "policy_arn": admin_arn}}])
+}
+
+with_role_values(extra) := {"values": {"root_module": {"resources": [r |
+	some r0 in state(good_statements).values.root_module.resources
+	r := role_with(r0, extra)
+]}}}
+
+role_with(r, extra) := {"type": r.type, "values": object.union(r.values, extra)} if r.type == "aws_iam_role"
+
+role_with(r, _) := r if r.type != "aws_iam_role"
+
+test_managed_policy_arns_is_denied if {
+	admin_denied(main.deny) with input as with_role_values({"managed_policy_arns": [admin_arn], "inline_policy": []})
+}
+
+test_inline_policy_block_is_policed if {
+	inline := [{"name": "debug", "policy": json.marshal({"Version": "2012-10-17", "Statement": [{"Action": "*", "Effect": "Allow", "Resource": "*"}]})}]
+	main.deny["wildcard action \"*\""] with input as with_role_values({"managed_policy_arns": [], "inline_policy": inline})
+}
+
+# What the provider writes when neither argument is set.
+test_empty_role_lists_pass if {
+	count(main.deny) == 0 with input as with_role_values({"managed_policy_arns": [], "inline_policy": []})
+}

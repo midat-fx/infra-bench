@@ -1,0 +1,14 @@
+{
+  "kind": "regrade",
+  "commit": "d28cc10-dirty",
+  "at": "20261103T135105Z",
+  "rows": [
+    {
+      "scenario": "tf-iam-least-privilege",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    }
+  ]
+}

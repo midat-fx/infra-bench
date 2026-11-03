@@ -34,21 +34,51 @@ queue := one("aws_sqs_queue")
 as_list(x) := x if is_array(x)
 as_list(x) := [x] if not is_array(x)
 
-# Statements of every managed or inline policy that ends up on the role.
-attached_docs contains json.unmarshal(p.values.policy) if {
+# State stores unset lists as null.
+arr(x) := x if is_array(x)
+
+arr(x) := [] if not is_array(x)
+
+# Every way a managed policy's ARN ends up on the role.
+attached_arns contains a.values.policy_arn if {
 	some a in resources
 	a.type == "aws_iam_role_policy_attachment"
 	a.values.role == role.values.name
-	some p in resources
-	p.type == "aws_iam_policy"
-	p.values.arn == a.values.policy_arn
 }
 
-attached_docs contains json.unmarshal(p.values.policy) if {
+attached_arns contains a.values.policy_arn if {
+	some a in resources
+	a.type == "aws_iam_policy_attachment"
+	role.values.name in arr(a.values.roles)
+}
+
+attached_arns contains arn if some arn in arr(role.values.managed_policy_arns)
+
+defined_arns := {p.values.arn | some p in managed("aws_iam_policy")}
+
+# An AWS-managed or pre-existing policy has no document in this state, so it
+# cannot be checked, and AdministratorAccess next to a correct policy would pass.
+deny contains msg if {
+	some arn in attached_arns
+	not arn in defined_arns
+	msg := sprintf("role gets %s, a policy not defined in this configuration", [arn])
+}
+
+inline_docs contains json.unmarshal(p.values.policy) if {
 	some p in resources
 	p.type == "aws_iam_role_policy"
 	p.values.role == role.values.name
 }
+
+inline_docs contains json.unmarshal(p.policy) if some p in arr(role.values.inline_policy)
+
+# Statements of every managed or inline policy that ends up on the role.
+attached_docs contains json.unmarshal(p.values.policy) if {
+	some p in managed("aws_iam_policy")
+	p.values.arn in attached_arns
+}
+
+attached_docs contains d if some d in inline_docs
 
 statements contains s if {
 	some d in attached_docs
@@ -66,6 +96,12 @@ all_statements contains s if {
 	some p in resources
 	p.type in {"aws_iam_policy", "aws_iam_role_policy"}
 	some s in as_list(json.unmarshal(p.values.policy).Statement)
+	s.Effect == "Allow"
+}
+
+all_statements contains s if {
+	some d in inline_docs
+	some s in as_list(d.Statement)
 	s.Effect == "Allow"
 }
 
