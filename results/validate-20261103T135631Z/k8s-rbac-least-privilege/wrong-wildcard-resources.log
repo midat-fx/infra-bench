@@ -1,0 +1,5 @@
+$ check.sh
+serviceaccount/log-shipper created
+role.rbac.authorization.k8s.io/log-reader created
+rolebinding.rbac.authorization.k8s.io/log-shipper created
+FAIL: can get secrets

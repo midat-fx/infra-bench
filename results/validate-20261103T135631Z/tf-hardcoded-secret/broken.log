@@ -1,0 +1,2 @@
+$ check.sh
+FAIL: leaked password still present in: main.tf 

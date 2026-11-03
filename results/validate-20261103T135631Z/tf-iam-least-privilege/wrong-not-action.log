@@ -1,0 +1,6 @@
+$ check.sh
+FAIL: Allow statement uses NotAction
+FAIL: role is missing s3:GetObject on arn:aws:s3:::exports-20261103141122399000000005/*
+FAIL: role is missing s3:PutObject on arn:aws:s3:::exports-20261103141122399000000005/*
+FAIL: role is missing sqs:SendMessage on arn:aws:sqs:us-east-1:000000000000:export-done-20261103141122395200000002
+FAIL: wildcard resource "*"
