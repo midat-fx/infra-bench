@@ -141,6 +141,67 @@ The two misses are the interesting part:
 Twelve scenarios at one run per model is a smoke test of the harness, not a
 model ranking.
 
+## Adding a scenario
+
+A scenario is a directory `scenarios/<id>/`. The runner finds it by its
+`check.sh`, so the directory name is the ID.
+
+| Path | What it is |
+|---|---|
+| `task.md` | What the fixer is told, and the only thing an agent sees besides the files. Every constraint the verifier enforces has to be written here; a check the task does not announce grades a guess. |
+| `workspace/` | The broken files. Each attempt starts from a fresh copy. |
+| `solution/` | My reference fix, copied over the workspace copy. Only changed files need to be there. |
+| `alt/<name>/` | Optional: another correct fix in a different style. It must pass too. |
+| `wrong/<name>/` | At least two plausible wrong fixes, each with an `_expect` file. |
+| `wrong/<name>/_expect` | Text that must appear in the verifier's output. A wrong fix that fails for some other reason counts as a miss. |
+| `<overlay>/_post.sh` | Optional, in `solution/`, `alt/` or `wrong/`: a command run in the workspace after copying, for fixes that are an action rather than a file (`terraform state rm`). `IB_ROOT` points at the repo. Files starting with `_` are never copied. |
+| `setup.sh` | Optional: prepares live state before each attempt (the drift scenario changes the queue behind Terraform's back). |
+| `check.sh` | The verifier. Gets the workspace path as `$1`; exit 0 accepts. |
+| `policy/*.rego`, `policy/*_test.rego` | Terraform only: conftest policy over the applied state, and its unit tests in `package main_test`. |
+
+`check.sh` sources `lib/k8s.sh` or `lib/tf.sh` and reports through `fail` and
+`ok` from `lib/env.sh`, which gives the output contract the runner parses:
+
+- `FAIL: <reason>` and a non-zero exit: rejected. The first `FAIL:` line is
+  the reason recorded in `summary.json`, and `_expect` is matched against the
+  whole output;
+- `FAIL: infra: <reason>`, or a non-zero exit with no `FAIL:` line at all: the
+  environment broke, not the fix (a namespace that would not delete). The
+  attempt is retried once, and an infra failure never counts as a correct
+  rejection;
+- `ok: <what was proven>` and exit 0: accepted.
+
+Check what the task forbids before checking behaviour where you can (probe
+type, limit budget, wildcards), then behaviour. Wait on states with the
+helpers (`k8s_wait_available` fails fast on crash loops instead of running out
+the clock), and for Terraform apply into fresh state, then read
+`terraform show -json`, where references are resolved.
+
+How I prove a new verifier before I trust it:
+
+1. **Broken fails, for the stated problem.** `broken` is always the first
+   attempt; its reason in the run output should be the bug from `task.md`,
+   not a typo in the manifests.
+2. **The solution and every alt pass.** An alt in another style (a different
+   resource type, a probe kind, a policy-writing style) is what catches a
+   verifier that only recognises my own fix.
+3. **Each wrong fix fails with its `_expect`.** Write the wrong fixes as the
+   shortcuts someone would actually take, at least one that still behaves
+   (breaks a written constraint) and one that still looks right (passes a
+   static read, fails at runtime).
+4. **Mutants turn tests red.** For Rego, `make policy-test` first, then delete
+   or weaken each rule by hand and confirm that exactly the intended unit test
+   fails (the results notes for the IAM fixes list the mutants I ran). A
+   `check.sh` has no unit tests; its guard is the wrong fixes, so give every check
+   a wrong fix that only that check rejects.
+5. **The whole suite, then the numbers.** `make test KEEP=1 IDS=<id>` while
+   iterating, then a full `make test` from a fresh clone. README counts come
+   only from that run's `results/validate-*/summary.json`.
+
+`make check` (no cluster) also runs `test_bench.py`, whose layout test fails
+on a scenario without `task.md`, `workspace/`, `solution/` or `check.sh`, with
+fewer than two wrong fixes, or with a wrong fix that has no `_expect`.
+
 ## Other targets
 
 ```bash
