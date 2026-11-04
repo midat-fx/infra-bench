@@ -83,6 +83,7 @@ pass the broken bucket, and what is deliberately left out.
 | Mac, fresh clone, policies attached from outside the configuration rejected | `bf804ec` | **69/69** (16 must-pass, 53 must-fail) | 1230.8 s | `results/validate-20261103T135631Z/` |
 | GitHub Actions `ubuntu-24.04`, clean checkout, manual run | `65102c0` | **69/69** | 577.9 s | `results/ci-41817285110/` |
 | GitHub Actions, clean checkout, `k8s-startup-probe` added | `db304d5` | **77/77** (18 must-pass, 59 must-fail) | 622.9 s | `results/ci-41819080771/` |
+| GitHub Actions, busybox pinned by digest, early-fail on whole reasons only | `731d3d0` | **77/77** | 636.4 s | `results/ci-41820490314/` |
 
 History was rewritten twice: on 2026-11-01 to remove account rate-limit status
 lines from the agent traces (code and results unchanged), and on 2026-11-02 to

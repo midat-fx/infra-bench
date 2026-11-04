@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/report-api created
+FAIL: deployment k8s-oom-crashloop/report-api pods are failing: OOMKilled

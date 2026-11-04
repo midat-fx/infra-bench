@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/ledger created
+FAIL: liveness takes 36s to restart a hung server, want at most 10s

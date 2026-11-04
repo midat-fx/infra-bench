@@ -1,0 +1,4 @@
+$ check.sh
+FAIL: role is missing s3:GetObject on arn:aws:s3:::exports-20261104113122918900000004/*
+FAIL: role is missing s3:PutObject on arn:aws:s3:::exports-20261104113122918900000004/*
+FAIL: wildcard resource "*"

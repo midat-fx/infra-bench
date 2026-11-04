@@ -1,0 +1,4 @@
+$ setup.sh
+
+$ check.sh
+FAIL: lifecycle ignore_changes hides the drift instead of fixing it
