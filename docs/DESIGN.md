@@ -222,8 +222,11 @@ taken from the transcript's init event, not from the flag.
 Two workflows. `checks` runs on every push and pull request in about a minute:
 `make check` (Rego unit tests, `bash -n`, the runner's self-test in
 `test_bench.py`, the leak check) plus `shellcheck -S error`. `make test` needs
-kind and LocalStack and takes ~15 minutes of runner time, so that workflow is
-manual. Both run with a read-only token and actions pinned to commit SHAs, so a
+kind and LocalStack and takes ~15 minutes of runner time, so it runs weekly
+and by hand, not on every push. The weekly run is there for drift outside the
+repo: a provider release, a moved image, a LocalStack change. A manual run can
+take an `ids` input to try one scenario on a clean runner; make pastes it into
+a shell recipe, so the workflow accepts only scenario-ID characters. Both run with a read-only token and actions pinned to commit SHAs, so a
 moved tag cannot change what runs.
 
 `lib/leak-check.sh` exists because this repo commits agent transcripts, and a
