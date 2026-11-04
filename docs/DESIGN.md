@@ -99,7 +99,9 @@ next attempt.
 `k8s_wait_available` fails fast on states that never heal by waiting
 (`CrashLoopBackOff`, `OOMKilled`, `CreateContainerConfigError`, a
 `ReplicaFailure` condition from admission). Rejecting a wrong fix then costs a
-few seconds instead of the full timeout.
+few seconds instead of the full timeout. A single non-zero exit (reason
+`Error`) used to count too, which would have failed an app that legitimately
+exits once and recovers; now only the reasons themselves, matched whole, do.
 
 One workload image (`busybox`) serves every scenario: `httpd` for servers,
 `wget` for traffic tests, `dd` to allocate memory. It is pulled into the node

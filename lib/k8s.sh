@@ -33,6 +33,8 @@ k8s_deploy() {
 
 # Wait until a Deployment is fully available. Bail out early on states that
 # never heal by waiting (crash loops, OOM kills, admission/config errors).
+# A plain non-zero exit (reason Error) is not one of them: a container may
+# exit once and come back, so only a loop of them (CrashLoopBackOff) counts.
 k8s_wait_available() {
   local ns=$1 name=$2 timeout=${3:-60} end json sel want bad
   end=$((SECONDS + timeout))
@@ -48,7 +50,7 @@ k8s_wait_available() {
     sel=$(jq -r '.spec.selector.matchLabels | to_entries | map("\(.key)=\(.value)") | join(",")' <<<"$json")
     bad=$(k get pods -n "$ns" -l "$sel" -o json | jq -r '.items[].status.containerStatuses[]? |
       (.state.waiting.reason // empty), (.lastState.terminated.reason // empty)' |
-      grep -m1 -E 'CrashLoopBackOff|OOMKilled|CreateContainerConfigError|ErrImagePull|ImagePullBackOff|Error' || true)
+      grep -m1 -xE 'CrashLoopBackOff|OOMKilled|CreateContainerConfigError|ErrImagePull|ImagePullBackOff' || true)
     [ -z "$bad" ] || fail "deployment $ns/$name pods are failing: $bad"
     sleep 2
   done
