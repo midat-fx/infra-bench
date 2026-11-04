@@ -80,7 +80,7 @@ pass the broken bucket, and what is deliberately left out.
 | Mac, after the trace scrub and history rewrite | `e3e223f` | **66/66** | 610.4 s | `results/validate-20261101T090854Z/` |
 | Mac, fresh clone, `aws_iam_policy_document` alt and wrong fix added | `672bde7` | **68/68** (16 must-pass, 52 must-fail) | 673.7 s | `results/validate-20261102T202206Z/` |
 | Mac, fresh clone, policies attached from outside the configuration rejected | `bf804ec` | **69/69** (16 must-pass, 53 must-fail) | 1230.8 s | `results/validate-20261103T135631Z/` |
-| GitHub Actions `ubuntu-24.04`, clean checkout, first weekly-workflow run | `65102c0` | **69/69** | 577.9 s | `results/ci-41817285110/` |
+| GitHub Actions `ubuntu-24.04`, clean checkout, manual run | `65102c0` | **69/69** | 577.9 s | `results/ci-41817285110/` |
 
 History was rewritten twice: on 2026-11-01 to remove account rate-limit status
 lines from the agent traces (code and results unchanged), and on 2026-11-02 to
