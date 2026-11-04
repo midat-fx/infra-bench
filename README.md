@@ -142,6 +142,16 @@ The two misses are the interesting part:
   with the fixed verifiers: this was the only verdict that changed. Details:
   `results/policy-null-bug-20261101/` and [docs/DESIGN.md](docs/DESIGN.md).
 
+The three `tf-state-drift` answers were not in that count: their verdict
+depends on live LocalStack state, and no run saved it. All three agents only
+edited `main.tf` and read live state (`plan`, `aws ... get-*`), so `regrade`
+now rebuilds that state as `setup.sh` plus the saved diff, and skips any run
+whose trace has a writing command. Regraded on a clean CI runner (run
+41893849505, commit `925d40d`, which is `5132a4e` with the workflow step
+swapped for the regrade): all three still pass. Raw:
+`regrade-20261104T*.json` and `tf-state-drift.regrade.log` in both run
+directories.
+
 Twelve scenarios at one run per model is a smoke test of the harness, not a
 model ranking.
 

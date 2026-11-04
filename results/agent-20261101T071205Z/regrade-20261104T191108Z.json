@@ -1,0 +1,21 @@
+{
+  "kind": "regrade",
+  "commit": "925d40d",
+  "at": "20261104T191108Z",
+  "rows": [
+    {
+      "scenario": "tf-state-drift",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-state-drift",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    }
+  ]
+}

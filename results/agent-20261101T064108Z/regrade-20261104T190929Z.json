@@ -1,0 +1,14 @@
+{
+  "kind": "regrade",
+  "commit": "925d40d",
+  "at": "20261104T190929Z",
+  "rows": [
+    {
+      "scenario": "tf-state-drift",
+      "model": "haiku",
+      "was": true,
+      "now": true,
+      "reason": ""
+    }
+  ]
+}
