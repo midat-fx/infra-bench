@@ -21,7 +21,7 @@ NODE_IMAGE=kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e
 LOCALSTACK_IMAGE=localstack/localstack:4.14.0
 TF_IMAGE=hashicorp/terraform:1.17.1
 CONFTEST_IMAGE=openpolicyagent/conftest:v0.71.1
-BUSYBOX=busybox:1.37.0
+BUSYBOX=busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
 
 CLUSTER=infra-bench
 NODE=$CLUSTER-control-plane

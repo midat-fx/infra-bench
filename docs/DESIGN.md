@@ -105,7 +105,9 @@ exits once and recovers; now only the reasons themselves, matched whole, do.
 
 One workload image (`busybox`) serves every scenario: `httpd` for servers,
 `wget` for traffic tests, `dd` to allocate memory. It is pulled into the node
-once at `up`, so the first attempt is not timing the registry.
+once at `up`, so the first attempt is not timing the registry. It is pinned
+by digest, like the kind node image, so a re-pushed tag cannot change what the
+scenarios run.
 
 kindnet, kind's default CNI, enforces NetworkPolicy in this release, so the
 NetworkPolicy scenario tests real packets: `frontend -> api` must succeed and

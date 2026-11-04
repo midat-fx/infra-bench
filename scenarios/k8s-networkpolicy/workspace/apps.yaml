@@ -15,7 +15,7 @@ spec:
       terminationGracePeriodSeconds: 1
       containers:
         - name: api
-          image: busybox:1.37.0
+          image: busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
           command: ["sh", "-c", "mkdir -p /www && echo api > /www/index.html && exec httpd -f -p 8080 -h /www"]
           ports:
             - containerPort: 8080
@@ -47,7 +47,7 @@ spec:
       terminationGracePeriodSeconds: 1
       containers:
         - name: frontend
-          image: busybox:1.37.0
+          image: busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
           command: ["sleep", "infinity"]
 ---
 apiVersion: apps/v1
@@ -66,5 +66,5 @@ spec:
       terminationGracePeriodSeconds: 1
       containers:
         - name: batch
-          image: busybox:1.37.0
+          image: busybox:1.37.0@sha256:a7dbc319b1438115a207e11930dc4bb3e643dcb3ec0bdd694bb36cd8fad289ec
           command: ["sleep", "infinity"]

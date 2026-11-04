@@ -75,6 +75,22 @@ class Regrade(unittest.TestCase):
 
 
 class ScenarioLayout(unittest.TestCase):
+    def test_every_saved_agent_diff_still_applies(self):
+        # regrade rebuilds workspaces from these; a workspace edit must not
+        # silently strand them.
+        for run in sorted((bench.ROOT / "results").glob("agent-*")):
+            for diff in sorted(run.glob("*/*.diff")):
+                sid = diff.stem
+                if (bench.SCEN / sid / "setup.sh").exists():
+                    continue
+                with self.subTest(diff=str(diff.relative_to(bench.ROOT))), tempfile.TemporaryDirectory() as t:
+                    ws = Path(t) / "ws"
+                    bench.prepare(sid, ws, [])
+                    p = subprocess.run(["patch", "-p0", "-s", "--dry-run"], cwd=ws, text=True,
+                                       input=bench.workspace_patch(diff.read_text(), sid),
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    self.assertEqual(p.returncode, 0, p.stdout)
+
     def test_every_scenario_is_complete(self):
         ids = bench.scenario_ids([])
         self.assertGreater(len(ids), 0)

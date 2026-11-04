@@ -296,6 +296,10 @@ def workspace_patch(saved: str, sid: str) -> str:
     (`<repo>/scenarios/<sid>/workspace/f`, `~/.cache/.../<sid>/f`) to `f`."""
     patch = re.sub(r"^(---|\+\+\+) \S+?/" + re.escape(sid) + r"/(?:workspace/)?(\S+)",
                    r"\1 \2", saved, flags=re.M)
+    # Diffs recorded before busybox was pinned by digest name the bare tag,
+    # which resolved to that same digest; match today's workspace.
+    pinned = re.search(r"^BUSYBOX=(\S+)", (ROOT / "lib" / "env.sh").read_text(), re.M).group(1)
+    patch = re.sub(re.escape(pinned.split("@")[0]) + r"(?!@)", pinned, patch)
     return "\n".join(l for l in patch.splitlines() if not l.startswith("diff ")) + "\n"
 
 
