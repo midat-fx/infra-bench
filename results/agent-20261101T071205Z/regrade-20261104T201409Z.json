@@ -1,0 +1,175 @@
+{
+  "kind": "regrade",
+  "commit": "f174a1d",
+  "at": "20261104T201409Z",
+  "rows": [
+    {
+      "scenario": "k8s-networkpolicy",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-oom-crashloop",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-pod-security",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-rbac-least-privilege",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-readiness-port",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-service-selector",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-hardcoded-secret",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-iam-least-privilege",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "model": "claude-haiku-5-5",
+      "was": false,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-s3-encryption",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-state-drift",
+      "model": "claude-haiku-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-networkpolicy",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-oom-crashloop",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-pod-security",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-rbac-least-privilege",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-readiness-port",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "k8s-service-selector",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-hardcoded-secret",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-iam-least-privilege",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-module-cycle",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-open-ssh",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-s3-encryption",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    },
+    {
+      "scenario": "tf-state-drift",
+      "model": "claude-sonnet-5-5",
+      "was": true,
+      "now": true,
+      "reason": ""
+    }
+  ]
+}

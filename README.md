@@ -153,6 +153,15 @@ swapped for the regrade): all three still pass. Raw:
 `regrade-20261104T*.json` and `tf-state-drift.regrade.log` in both run
 directories.
 
+On 2026-11-04 I ran both 5.5 models on the newer `k8s-startup-probe`
+scenario: both solved it with a `startupProbe` (Haiku: 4 turns, 15.1 s,
+$0.16; Sonnet: 6 turns, 61.8 s, $0.10). Raw: `results/agent-20261104T200617Z/`.
+The same evening `bench.py regrade` re-checked all 36 earlier answers, drift
+included, against the verifiers at `f174a1d` (IAM grant paths, the stricter
+early-fail check, busybox by digest): no verdict changed beyond the
+`tf-module-cycle` one above. Raw: `regrade-20261104T2014*.json` and
+`regrade-20261104T2018*.json` in the two 11-01 run directories.
+
 Twelve scenarios at one run per model is a smoke test of the harness, not a
 model ranking.
 

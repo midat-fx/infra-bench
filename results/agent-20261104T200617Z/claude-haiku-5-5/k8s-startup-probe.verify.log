@@ -1,0 +1,6 @@
+$ k8s_deploy (broken)
+Error from server (AlreadyExists): namespaces "k8s-startup-probe" already exists
+
+$ check.sh
+deployment.apps/ledger created
+ok: ledger up after its slow start, no restarts

@@ -1,0 +1,37 @@
+{
+  "kind": "agent",
+  "commit": "f174a1d",
+  "started": "20261104T200617Z",
+  "max_turns": 40,
+  "runs": 2,
+  "rows": [
+    {
+      "scenario": "k8s-startup-probe",
+      "model": "claude-haiku-5-5",
+      "resolved_model": "claude-haiku-5-5",
+      "passed": true,
+      "reason": "",
+      "turns": 4,
+      "cost_usd": 0.1628005,
+      "agent_seconds": 15.1,
+      "verify_seconds": 39.5,
+      "agent_error": null,
+      "peeked": false
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "model": "claude-sonnet-5-5",
+      "resolved_model": "claude-sonnet-5-5",
+      "passed": true,
+      "reason": "",
+      "turns": 6,
+      "cost_usd": 0.09942480000000001,
+      "agent_seconds": 61.8,
+      "verify_seconds": 40.2,
+      "agent_error": null,
+      "peeked": false
+    }
+  ],
+  "pass_claude-haiku-5-5": "1/1",
+  "pass_claude-sonnet-5-5": "1/1"
+}
