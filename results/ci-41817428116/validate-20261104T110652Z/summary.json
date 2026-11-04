@@ -1,0 +1,100 @@
+{
+  "kind": "validate",
+  "commit": "9d831a7",
+  "started": "20261104T110652Z",
+  "jobs": 3,
+  "wall_seconds": 136.0,
+  "scenarios": 1,
+  "attempts": 8,
+  "correct": 8,
+  "rows": [
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "broken",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: deployment k8s-startup-probe/ledger pods are failing: Error",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 9.8,
+      "tries": 1
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "solution",
+      "expected": "pass",
+      "got": "pass",
+      "reason": "",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 40.4,
+      "tries": 1
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "alt/tcp-startup",
+      "expected": "pass",
+      "got": "pass",
+      "reason": "",
+      "expect": null,
+      "ok": true,
+      "verify_seconds": 40.3,
+      "tries": 1
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "wrong/exec-true",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: livenessProbe must be httpGet on /healthz",
+      "expect": "livenessProbe must be httpGet on /healthz",
+      "ok": true,
+      "verify_seconds": 7.5,
+      "tries": 1
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "wrong/liveness-delay",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: liveness takes 36s to restart a hung server, want at most 10s",
+      "expect": "liveness takes",
+      "ok": true,
+      "verify_seconds": 7.9,
+      "tries": 1
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "wrong/no-liveness",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: livenessProbe missing",
+      "expect": "livenessProbe missing",
+      "ok": true,
+      "verify_seconds": 7.8,
+      "tries": 1
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "wrong/short-startup",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: deployment k8s-startup-probe/ledger pods are failing: Error",
+      "expect": "pods are failing",
+      "ok": true,
+      "verify_seconds": 13.5,
+      "tries": 1
+    },
+    {
+      "scenario": "k8s-startup-probe",
+      "attempt": "wrong/skip-warmup",
+      "expected": "fail",
+      "got": "fail",
+      "reason": "FAIL: app start-up changed: the 20 s load must stay",
+      "expect": "start-up changed",
+      "ok": true,
+      "verify_seconds": 8.8,
+      "tries": 1
+    }
+  ]
+}
