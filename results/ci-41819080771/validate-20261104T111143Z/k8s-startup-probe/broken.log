@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/ledger created
+FAIL: deployment k8s-startup-probe/ledger pods are failing: Error

@@ -1,0 +1,2 @@
+$ check.sh
+FAIL: bucket aws_s3_bucket.invoices has no public access block

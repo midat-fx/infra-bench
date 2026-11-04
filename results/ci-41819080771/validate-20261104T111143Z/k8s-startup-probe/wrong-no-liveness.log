@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/ledger created
+FAIL: livenessProbe missing

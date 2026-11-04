@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/ledger created
+FAIL: app start-up changed: the 20 s load must stay

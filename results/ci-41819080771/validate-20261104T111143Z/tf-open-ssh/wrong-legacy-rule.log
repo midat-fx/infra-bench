@@ -1,0 +1,2 @@
+$ check.sh
+FAIL: port 22 reachable via tcp/22-22 from 0.0.0.0/0

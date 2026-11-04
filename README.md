@@ -1,6 +1,6 @@
 # infra-bench
 
-Twelve broken Kubernetes and Terraform setups, each with a verifier that runs
+Thirteen broken Kubernetes and Terraform setups, each with a verifier that runs
 the fix for real. Kubernetes scenarios run on a local [kind](https://kind.sigs.k8s.io)
 cluster; Terraform scenarios apply against [LocalStack](https://github.com/localstack/localstack).
 No cloud account, no credentials.
@@ -11,7 +11,7 @@ the shortcuts a tired engineer or a coding agent takes (delete the probe, remove
 `ignore_changes` the drift away, `s3:*` instead of `*`). `make test` proves on
 every run that each verifier rejects the broken setup, accepts the correct
 fixes, and rejects every wrong fix *for the reason it was written to catch*:
-12 scenarios, 69 verdicts.
+13 scenarios, 77 verdicts.
 
 ```bash
 make test
@@ -32,6 +32,7 @@ installed.
 | `k8s-networkpolicy` | allow rule selects a label no pod has, and the Service port instead of the pod port | allow the whole namespace · drop default-deny · right label, wrong port |
 | `k8s-rbac-least-privilege` | log shipper bound to `cluster-admin` | Role on `resources: ["*"]` · ClusterRoleBinding · built-in `view` · no `pods/log` |
 | `k8s-pod-security` | Deployment rejected by PSA `restricted` | relabel namespace to `baseline` · `runAsNonRoot` only · `runAsNonRoot` on a root image |
+| `k8s-startup-probe` | liveness probe kills an app that needs 20 s to start, restart loop | delete the liveness probe · `exec: true` liveness · `initialDelaySeconds: 30` instead of a startup probe · startup probe too short · remove the slow start |
 | `k8s-service-selector` | Service selector pins `version: v1` after a v2 rollout | `app: shop` or `app: shop, version: v2` (both catch the admin pods) · pin the new version |
 | `tf-s3-encryption` | bucket without default encryption or public access block | encrypt a different bucket · 3 of 4 block settings · `acl = private` |
 | `tf-iam-least-privilege` | task role with `Action: *`, `Resource: *` | `s3:*` · right actions on `Resource: *` · forget `sqs:SendMessage` · `NotAction` · `Resource: *` through `aws_iam_policy_document` · AWS-managed `AdministratorAccess` attached next to a correct policy |
@@ -42,7 +43,7 @@ installed.
 
 Each scenario lives in `scenarios/<id>/`: `task.md` (what the fixer is told),
 `workspace/` (broken files), `solution/`, `alt/*/` (other correct fixes, in
-three scenarios), `wrong/*/`, `check.sh` (verifier) and, for Terraform,
+four scenarios), `wrong/*/`, `check.sh` (verifier) and, for Terraform,
 `policy/*.rego`.
 
 ## How the verifiers work
@@ -81,6 +82,7 @@ pass the broken bucket, and what is deliberately left out.
 | Mac, fresh clone, `aws_iam_policy_document` alt and wrong fix added | `672bde7` | **68/68** (16 must-pass, 52 must-fail) | 673.7 s | `results/validate-20261102T202206Z/` |
 | Mac, fresh clone, policies attached from outside the configuration rejected | `bf804ec` | **69/69** (16 must-pass, 53 must-fail) | 1230.8 s | `results/validate-20261103T135631Z/` |
 | GitHub Actions `ubuntu-24.04`, clean checkout, manual run | `65102c0` | **69/69** | 577.9 s | `results/ci-41817285110/` |
+| GitHub Actions, clean checkout, `k8s-startup-probe` added | `db304d5` | **77/77** (18 must-pass, 59 must-fail) | 622.9 s | `results/ci-41819080771/` |
 
 History was rewritten twice: on 2026-11-01 to remove account rate-limit status
 lines from the agent traces (code and results unchanged), and on 2026-11-02 to
