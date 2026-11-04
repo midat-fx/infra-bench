@@ -1,0 +1,4 @@
+$ check.sh
+deployment.apps/storefront created
+service/storefront created
+ok: storefront ready behind its service

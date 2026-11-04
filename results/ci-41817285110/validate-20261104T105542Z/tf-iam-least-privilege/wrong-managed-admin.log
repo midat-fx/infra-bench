@@ -1,0 +1,2 @@
+$ check.sh
+FAIL: role gets arn:aws:iam::aws:policy/AdministratorAccess, a policy not defined in this configuration

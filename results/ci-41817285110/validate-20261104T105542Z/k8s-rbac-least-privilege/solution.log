@@ -1,0 +1,5 @@
+$ check.sh
+serviceaccount/log-shipper created
+role.rbac.authorization.k8s.io/log-reader created
+rolebinding.rbac.authorization.k8s.io/log-shipper created
+ok: log-shipper limited to pods + pods/log in k8s-rbac-least-privilege
