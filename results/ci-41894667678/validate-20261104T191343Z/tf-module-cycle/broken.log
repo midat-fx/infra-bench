@@ -1,0 +1,7 @@
+$ check.sh
+Error: Cycle:
+  module.db.aws_security_group.db
+  module.db.var.app_sg_id (expand)
+  module.app.output.sg_id (expand)
+  module.app.aws_security_group.app
+FAIL: terraform apply failed

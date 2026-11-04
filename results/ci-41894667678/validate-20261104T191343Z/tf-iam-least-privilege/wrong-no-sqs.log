@@ -1,0 +1,2 @@
+$ check.sh
+FAIL: role is missing sqs:SendMessage on arn:aws:sqs:us-east-1:000000000000:export-done-20261104192112496500000003

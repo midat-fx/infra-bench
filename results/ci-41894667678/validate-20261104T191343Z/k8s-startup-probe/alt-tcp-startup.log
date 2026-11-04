@@ -1,0 +1,3 @@
+$ check.sh
+deployment.apps/ledger created
+ok: ledger up after its slow start, no restarts
