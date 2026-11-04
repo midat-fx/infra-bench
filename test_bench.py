@@ -74,6 +74,21 @@ class Regrade(unittest.TestCase):
             self.assertEqual((ws / "main.tf").read_text(), alt_main)
 
 
+    def test_live_writes_in_a_trace(self):
+        def trace(*cmds):
+            return "\n".join(json.dumps({"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Bash", "input": {"command": c}}]}}) for c in cmds)
+        writes = ["terraform apply -auto-approve", "terraform -chdir=. state rm aws_sqs_queue.jobs",
+                  "aws --endpoint-url http://x:4566 sqs set-queue-attributes --queue-url u",
+                  "terraform plan; aws sqs untag-queue --queue-url u --tag-keys oncall"]
+        reads = ["cat .apply.log", "terraform plan -detailed-exitcode", "aws sqs get-queue-attributes --queue-url u",
+                 "terraform state list", "terraform state show aws_sqs_queue.jobs"]
+        self.assertEqual(bench.live_writes(trace(*writes, *reads)), writes)
+        # The recorded drift runs only read live state, so regrade can rebuild them.
+        for f in sorted(bench.ROOT.glob("results/agent-*/*/tf-state-drift.jsonl")):
+            self.assertEqual(bench.live_writes(f.read_text()), [], str(f))
+
+
 class ScenarioLayout(unittest.TestCase):
     def test_every_saved_agent_diff_still_applies(self):
         # regrade rebuilds workspaces from these; a workspace edit must not
@@ -81,11 +96,9 @@ class ScenarioLayout(unittest.TestCase):
         for run in sorted((bench.ROOT / "results").glob("agent-*")):
             for diff in sorted(run.glob("*/*.diff")):
                 sid = diff.stem
-                if (bench.SCEN / sid / "setup.sh").exists():
-                    continue
                 with self.subTest(diff=str(diff.relative_to(bench.ROOT))), tempfile.TemporaryDirectory() as t:
                     ws = Path(t) / "ws"
-                    bench.prepare(sid, ws, [])
+                    shutil.copytree(bench.SCEN / sid / "workspace", ws)  # setup.sh edits no files
                     p = subprocess.run(["patch", "-p0", "-s", "--dry-run"], cwd=ws, text=True,
                                        input=bench.workspace_patch(diff.read_text(), sid),
                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)

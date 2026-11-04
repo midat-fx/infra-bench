@@ -303,17 +303,45 @@ def workspace_patch(saved: str, sid: str) -> str:
     return "\n".join(l for l in patch.splitlines() if not l.startswith("diff ")) + "\n"
 
 
+# Commands that change live LocalStack or Terraform state. Over-matching only
+# makes regrade skip a run, so it errs that way.
+LIVE_WRITE = re.compile(r"\bterraform\b[^|;&\n]*\s(?:apply|destroy|import|refresh|taint|untaint|"
+                        r"state\s+(?:mv|rm|push|replace-provider))\b"
+                        r"|\baws\b[^|;&\n]*\s(?:set|tag|untag|delete|create|purge|send|put|add|remove|change)-")
+
+
+def live_writes(trace: str) -> list:
+    """Bash commands in a saved agent trace that change live state."""
+    cmds = []
+    for line in trace.splitlines():
+        try:
+            e = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if e.get("type") == "assistant":
+            cmds += [c["input"].get("command", "") for c in e.get("message", {}).get("content", [])
+                     if c.get("type") == "tool_use" and c.get("name") == "Bash"]
+    return [c for c in cmds if LIVE_WRITE.search(c)]
+
+
 def cmd_regrade(a):
     """Re-run today's verifiers on a past agent run, rebuilding each workspace
-    from the saved diff. Drift needs the live state the agent left, so it is
-    skipped. Writes regrade-<stamp>.json next to the run's summary.json."""
+    from the saved diff. A scenario with setup.sh is rebuilt as setup.sh, then
+    the diff; that is the agent's end state only if it changed nothing live,
+    so a run whose trace has a live write is skipped. Writes
+    regrade-<stamp>.json next to the run's summary.json."""
     run_dir = (ROOT / a.run).resolve()
     summary = json.loads((run_dir / "summary.json").read_text())
     out = []
     for r in summary["rows"]:
         sid, model = r["scenario"], r["model"]
-        if (a.ids and sid not in a.ids) or (SCEN / sid / "setup.sh").exists():
+        if a.ids and sid not in a.ids:
             continue
+        if (SCEN / sid / "setup.sh").exists():
+            writes = live_writes((run_dir / model / f"{sid}.jsonl").read_text())
+            if writes:
+                print(f"{model:18} {sid:28} skipped, changed live state: {writes[0][:80]}", flush=True)
+                continue
         ws = WORK / f"regrade-{model}-{sid}"
         log = []
         prepare(sid, ws, log)

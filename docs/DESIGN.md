@@ -76,7 +76,13 @@ the algorithm check each turns exactly the intended test red.
 `bench.py regrade` re-runs today's verifiers over a past agent run, rebuilding
 each workspace from the saved diff, so a verifier fix can be checked against
 every recorded agent answer, not only the one that exposed it. The drift
-scenario is not regradable: its verdict depends on live LocalStack state.
+scenario's verdict depends on live LocalStack state, so its workspace is
+rebuilt as `setup.sh` (apply the old code, make the console change), then the
+saved diff. That is the state the agent left only if it changed nothing live,
+so regrade first scans the saved trace for a Terraform or `aws` command that
+writes (apply, import, `state rm`, `set-queue-attributes`, ...) and skips the
+run if it finds one. None of the three recorded drift runs did: they edited
+`main.tf` and ran `plan` and read-only `aws` calls.
 
 ## Kubernetes: kubectl runs inside the kind node
 
